@@ -15,6 +15,8 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -94,7 +96,7 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
 
         chatRoomName = getIntent().getExtras().getString("chatRoomName");
 
-        Toolbar t = findViewById(R.id.toolbar_for_sidebar);
+        Toolbar t = findViewById(R.id.toolbar_for_chatroom);
         t.setTitleTextColor(Color.WHITE);
         setSupportActionBar(t);
         setTitle(chatRoomName);
@@ -375,24 +377,25 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.chatroom_menu,menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.request_ride:
+                //add your code here to goto next activity
+                Toast.makeText(this, "why you want to request ride, walk!!!", Toast.LENGTH_LONG).show();
+            default:
+                Log.d(TAG, "onOptionsItemSelected: default case called in chatroom activity");
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public boolean onSupportNavigateUp() {
-//        mAuth=FirebaseAuth.getInstance();
-//        db.collection("ChatRoomList").document(chatRoomName).collection("CurrentViewers")
-//                .document(mAuth.getUid())
-//                .delete()
-//                .addOnCompleteListener(new OnCompleteListener<Void>() {
-//                    @Override
-//                    public void onComplete(@NonNull Task<Void> task) {
-////                        Toast.makeText(ChatRoomActivity.this, "!", Toast.LENGTH_SHORT).show();
-//                        mainAdapter.notifyDataSetChanged();
-//                    }
-//                }).addOnFailureListener(new OnFailureListener() {
-//            @Override
-//            public void onFailure(@NonNull Exception e) {
-//                Toast.makeText(ChatRoomActivity.this, "Some error occured. Please press the back button again!", Toast.LENGTH_SHORT).show();
-//            }
-//        });
-//        finish();
         onBackPressed();
         return true;
     }

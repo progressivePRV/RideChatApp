@@ -36,4 +36,5 @@
     <string name="edit">Edit</string>
     <string name="chatRoomNewButton">Create New Chat Room</string>
     <string name="name">Name</string>
+    <string name="request_ride">Request Ride</string>
 </resources>
