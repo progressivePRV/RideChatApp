@@ -2,9 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.helloworld.myapplication">
 
-    <uses-permission android:name="android.permission.CAMERA"
+    <uses-permission
+        android:name="android.permission.CAMERA"
         android:required="true"
-        android:requiredFeature="true"/>
+        android:requiredFeature="true" />
 
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
@@ -22,6 +23,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
+        <activity android:name=".AskForARide"></activity>
         <activity android:name=".showProfile" />
         <activity android:name=".EditProfileActivity" />
         <activity android:name=".ChatRoomCreateActivity" />

@@ -96,6 +96,7 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
         Log.d(TAG, "onCreate: chatroomActivity is called");
 
         chatRoomName = getIntent().getExtras().getString("chatRoomName");
+        user = (UserProfile) getIntent().getSerializableExtra("user");
 
         Toolbar t = findViewById(R.id.toolbar_for_chatroom);
         t.setTitleTextColor(Color.WHITE);
@@ -234,7 +235,7 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
                         showProgressBarDialog();
 
                         //Setting up all the details of the user for the message
-                        user = (UserProfile) getIntent().getSerializableExtra("user");
+//                        user = (UserProfile) getIntent().getSerializableExtra("user");
 
                         //For getting the date
                         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -377,7 +378,11 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
         switch (item.getItemId()){
             case R.id.request_ride:
                 //add your code here to goto next activity
-                Toast.makeText(this, "why you want to request ride, walk!!!", Toast.LENGTH_LONG).show();
+                //Toast.makeText(this, "why you want to request ride, walk!!!", Toast.LENGTH_LONG).show();
+                Intent i =  new Intent(this,AskForARide.class);
+                i.putExtra("user",user);
+                startActivity(i);
+
             default:
                 Log.d(TAG, "onOptionsItemSelected: default case called in chatroom activity");
         }

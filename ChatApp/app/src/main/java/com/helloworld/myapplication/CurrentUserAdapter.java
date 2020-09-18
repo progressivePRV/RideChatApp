@@ -43,6 +43,7 @@ public class CurrentUserAdapter  extends RecyclerView.Adapter<CurrentUserAdapter
     @Override
     public void onBindViewHolder(CurrentUserAdapter.MyViewHolder holder, final int position) {
         UserProfile userProfile = mDataset.get(position);
+        holder.name_of_Cuser.setText(userProfile.firstName);
         Picasso
                 .get()
                 .load(userProfile.profileImage)
@@ -89,10 +90,12 @@ public class CurrentUserAdapter  extends RecyclerView.Adapter<CurrentUserAdapter
         // each data item is just a string in this case
         ImageView viewersListImage;
         ConstraintLayout constraintLayout;
+        TextView name_of_Cuser;
         public MyViewHolder(View view) {
             super(view);
             viewersListImage = view.findViewById(R.id.viewersListImage);
             constraintLayout = view.findViewById(R.id.freshCurrentUsersConstaintLayout);
+            name_of_Cuser = view.findViewById(R.id.name_of_Cusers);
         }
 
     }
