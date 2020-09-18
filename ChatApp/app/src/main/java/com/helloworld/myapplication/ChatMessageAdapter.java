@@ -94,7 +94,7 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<ChatMessageAdapter.
                     holder.ButtonMessageDelete.setVisibility(ImageButton.INVISIBLE);
                 }
 
-                if(chatMessageDetails.likedUsers.contains(mAuth.getUid())){
+                if(chatMessageDetails.likedUsers.containsKey(mAuth.getUid())){
                     holder.ButtonMessageFavouriteON.setVisibility(ImageButton.VISIBLE);
                     holder.ButtonMessageFavorites.setVisibility(ImageButton.INVISIBLE);
                 }else{
@@ -105,7 +105,7 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<ChatMessageAdapter.
                 holder.ButtonMessageFavorites.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        chatMessageDetails.likedUsers.add(mAuth.getUid());
+                        chatMessageDetails.likedUsers.put(mAuth.getUid(),true);
                         interact.getDetails(chatMessageDetails);
                     }
                 });

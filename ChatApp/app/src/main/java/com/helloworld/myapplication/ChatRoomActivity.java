@@ -45,6 +45,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 
 public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAdapter.InteractWithRecyclerView{
 
@@ -101,18 +102,7 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
         setSupportActionBar(t);
         setTitle(chatRoomName);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        //setTitle("Welcome to Chat Room");
 
-        //temporary code for logout. Please remove while actual implementation
-//        findViewById(R.id.buttonLogout).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                mAuth = FirebaseAuth.getInstance();
-//                mAuth.signOut();
-//                Intent loginIntent = new Intent(ChatRoomActivity.this,MainActivity.class);
-//                startActivity(loginIntent);
-//            }
-//        });
         db = FirebaseFirestore.getInstance();
 
         //For the chat Messages
@@ -256,7 +246,7 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
                         chatMessageDetails.Message = enterMessageText.getText().toString();
                         chatMessageDetails.Uid = mAuth.getUid();
                         chatMessageDetails.date = dtf.format(now);
-                        chatMessageDetails.likedUsers = new ArrayList<>();
+                        chatMessageDetails.likedUsers = new HashMap<String,Boolean>();
                         chatMessageDetails.imageUrl = user.profileImage;
 
                         //Document ID is now the user ID plus the message date. so that this can be used when updating the liked user field.

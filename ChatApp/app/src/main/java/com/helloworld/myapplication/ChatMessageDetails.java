@@ -2,13 +2,15 @@ package com.helloworld.myapplication;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ChatMessageDetails {
     String Uid;
     String firstname;
     String Message;
     String date;
-    ArrayList<String> likedUsers = new ArrayList<>();
+    HashMap<String,Boolean> likedUsers = new HashMap<String ,Boolean>();
     String imageUrl;
 
     public String getUid() {
@@ -43,11 +45,11 @@ public class ChatMessageDetails {
         this.date = date;
     }
 
-    public ArrayList<String> getLikedUsers() {
+    public HashMap<String,Boolean> getLikedUsers() {
         return likedUsers;
     }
 
-    public void setLikedUsers(ArrayList<String> likedUsers) {
+    public void setLikedUsers(HashMap<String,Boolean> likedUsers) {
         this.likedUsers = likedUsers;
     }
 
