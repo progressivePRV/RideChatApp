@@ -65,6 +65,7 @@ public class AskForARide extends AppCompatActivity {
     private ProgressDialog progressDialog;
     private String chatRoomName;
     ArrayList<UserProfile> acceptedDrivers = new ArrayList<>();
+    private RequestedRides updateRideDetails;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -202,8 +203,9 @@ public class AskForARide extends AppCompatActivity {
                 }
 
                 if (snapshot != null && snapshot.exists()) {
-                    RequestedRides ride = snapshot.toObject(RequestedRides.class);
-                    acceptedDrivers = ride.drivers;
+                    updateRideDetails = snapshot.toObject(RequestedRides.class);
+                    acceptedDrivers = new ArrayList<>();
+                    acceptedDrivers = updateRideDetails.drivers;
                 } else {
                     System.out.print("Current data: null");
                 }
@@ -238,8 +240,12 @@ public class AskForARide extends AppCompatActivity {
     public void setUpAlertDialogDriver(){
         AlertDialog.Builder builder = new AlertDialog.Builder(AskForARide.this);
         final View customLayout = AskForARide.this.getLayoutInflater().inflate(R.layout.dialog_accepted_driver_list, null);
-        ArrayAdapter<UserProfile> dataAdapter = new ArrayAdapter<UserProfile>(this,
-                android.R.layout.simple_dropdown_item_1line, acceptedDrivers);
+        final ArrayList<String> acceptedDriversName = new ArrayList<>();
+        for(UserProfile u : acceptedDrivers){
+            acceptedDriversName.add(u.firstName);
+        }
+        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_dropdown_item_1line, acceptedDriversName);
         //for custom layout
 //        builder.setView(customLayout)
 //                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
@@ -258,7 +264,29 @@ public class AskForARide extends AppCompatActivity {
         builder.setAdapter(dataAdapter, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(AskForARide.this,"You have selected " + acceptedDrivers.get(which),Toast.LENGTH_LONG).show();
+                Toast.makeText(AskForARide.this,"You have selected " + acceptedDriversName.get(which),Toast.LENGTH_LONG).show();
+                //Here the user has selected a driver. So the driver name and the ID should get updated
+                db = FirebaseFirestore.getInstance();
+                updateRideDetails.driverId = updateRideDetails.drivers.get(which).uid;
+                updateRideDetails.driverName = updateRideDetails.drivers.get(which).firstName+" "+updateRideDetails.drivers.get(which).lastName;
+                updateRideDetails.rideStatus = "ACCEPTED";
+                db.collection("ChatRoomList")
+                        .document(getIntent().getExtras().getString("chatRoomName"))
+                        .collection("Requested Rides")
+                        .document(updateRideDetails.riderId)
+                        .set(updateRideDetails)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                showProgressBarDialogWithHandler();
+                                Toast.makeText(AskForARide.this, "Lets see if it stores without any problem!", Toast.LENGTH_SHORT).show();
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(AskForARide.this, "Some error occured. Please try again", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
 //        builder.setItems(acceptedDrivers, new DialogInterface.OnClickListener() {
