@@ -283,6 +283,43 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
             }
         });
 
+
+        //Adding Snapshot listener to the Requested Rides User Document for Drivers
+        //Hope it works!!
+
+        //Adding snapshot to the current users list in the chatroom
+        db.collection("ChatRoomList")
+                .document(chatRoomName)
+                .collection("Requested Rides")
+                .addSnapshotListener(ChatRoomActivity.this, new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot snapshots,
+                                @Nullable FirebaseFirestoreException e) {
+                if (e != null) {
+                    Log.w("TAG", "listen:error", e);
+                    return;
+                }
+
+                for (DocumentChange dc : snapshots.getDocumentChanges()) {
+                    switch (dc.getType()) {
+                        case ADDED:
+                            Toast.makeText(ChatRoomActivity.this, "It comes to addded", Toast.LENGTH_SHORT).show();
+                            RequestedRides added = dc.getDocument().toObject(RequestedRides.class);
+                            Intent intent = new Intent(ChatRoomActivity.this, DriverMapsActivity.class);
+                            intent.putExtra("requestedRides", added);
+                            startActivity(intent);
+                            break;
+                        case MODIFIED:
+                            Toast.makeText(ChatRoomActivity.this, "It comes to modified", Toast.LENGTH_SHORT).show();
+                            break;
+                        case REMOVED:
+                            Toast.makeText(ChatRoomActivity.this, "It comes to deleted", Toast.LENGTH_SHORT).show();
+                            break;
+                    }
+                }
+            }
+        });
+
     }
     //For checking the empty strings
     public boolean checkValidations(EditText editText){
@@ -380,6 +417,7 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
                 //add your code here to goto next activity
                 //Toast.makeText(this, "why you want to request ride, walk!!!", Toast.LENGTH_LONG).show();
                 Intent i =  new Intent(this,AskForARide.class);
+
                 i.putExtra("chatRoomName",chatRoomName);
                 i.putExtra("user",user);
                 startActivity(i);

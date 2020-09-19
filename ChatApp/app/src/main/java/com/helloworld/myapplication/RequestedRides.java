@@ -2,15 +2,19 @@ package com.helloworld.myapplication;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
 
-public class RequestedRides {
+public class RequestedRides implements Serializable {
     String riderId;
+    String riderName;
     String driverId;
-    ArrayList<String> drivers = new ArrayList<>();
-    com.google.android.gms.maps.model.LatLng pickUpLocation;
-    com.google.android.gms.maps.model.LatLng dropOffLocation;
+    String driverName;
+    HashMap<String, UserProfile> drivers = new HashMap<>();
+    ArrayList<Double> pickUpLocation = new ArrayList<>();
+    ArrayList<Double> dropOffLocation = new ArrayList<>();
     String rideStatus;
 
     public String getRiderId() {
@@ -21,6 +25,14 @@ public class RequestedRides {
         this.riderId = riderId;
     }
 
+    public String getRiderName() {
+        return riderName;
+    }
+
+    public void setRiderName(String riderName) {
+        this.riderName = riderName;
+    }
+
     public String getDriverId() {
         return driverId;
     }
@@ -29,27 +41,35 @@ public class RequestedRides {
         this.driverId = driverId;
     }
 
-    public ArrayList<String> getDrivers() {
+    public String getDriverName() {
+        return driverName;
+    }
+
+    public void setDriverName(String driverName) {
+        this.driverName = driverName;
+    }
+
+    public HashMap<String, UserProfile> getDrivers() {
         return drivers;
     }
 
-    public void setDrivers(ArrayList<String> drivers) {
+    public void setDrivers(HashMap<String, UserProfile> drivers) {
         this.drivers = drivers;
     }
 
-    public LatLng getPickUpLocation() {
+    public ArrayList<Double> getPickUpLocation() {
         return pickUpLocation;
     }
 
-    public void setPickUpLocation(LatLng pickUpLocation) {
+    public void setPickUpLocation(ArrayList<Double> pickUpLocation) {
         this.pickUpLocation = pickUpLocation;
     }
 
-    public LatLng getDropOffLocation() {
+    public ArrayList<Double> getDropOffLocation() {
         return dropOffLocation;
     }
 
-    public void setDropOffLocation(LatLng dropOffLocation) {
+    public void setDropOffLocation(ArrayList<Double> dropOffLocation) {
         this.dropOffLocation = dropOffLocation;
     }
 
@@ -65,7 +85,9 @@ public class RequestedRides {
     public String toString() {
         return "RequestedRides{" +
                 "riderId='" + riderId + '\'' +
+                ", riderName='" + riderName + '\'' +
                 ", driverId='" + driverId + '\'' +
+                ", driverName='" + driverName + '\'' +
                 ", drivers=" + drivers +
                 ", pickUpLocation=" + pickUpLocation +
                 ", dropOffLocation=" + dropOffLocation +

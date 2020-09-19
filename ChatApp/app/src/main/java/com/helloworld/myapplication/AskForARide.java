@@ -15,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -32,8 +33,8 @@ import com.google.firebase.database.annotations.NotNull;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.auth.User;
-import com.google.type.LatLng;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class AskForARide extends AppCompatActivity {
@@ -46,18 +47,15 @@ public class AskForARide extends AppCompatActivity {
     TextInputEditText toLocatioin, fromLocation;
     MaterialButton sendRideRequest;
     TextInputLayout textInputTo,textInputFrom;
-    String apiKey;
     private EditText etPlaceFrom;
     private EditText efPlaceTo;
-    private com.google.android.gms.maps.model.LatLng fromLatLong;
-    private com.google.android.gms.maps.model.LatLng toLatLong;
+    private ArrayList<Double> fromLatLong = new ArrayList<>();
+    private ArrayList<Double> toLatLong = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ask_for_a_ride);
-
-        apiKey = getResources().getString(R.string.google_api_key);
 
         Toolbar t = findViewById(R.id.toolbar_for_sidebar);
         t.setTitleTextColor(Color.WHITE);
@@ -86,6 +84,7 @@ public class AskForARide extends AppCompatActivity {
                   requestedRides.dropOffLocation = toLatLong;
                   requestedRides.pickUpLocation = fromLatLong;
                   requestedRides.rideStatus = "REQUESTED";
+
 
                           db.collection("ChatRoomList")
                                   .document(getIntent().getExtras().getString("chatRoomName"))
@@ -129,15 +128,16 @@ public class AskForARide extends AppCompatActivity {
 
         
 
-        autocompleteFragment_from.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME));
+        autocompleteFragment_from.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG));
 
         autocompleteFragment_from.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
                 // TODO: Get info about the selected place.
                 Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
-                fromLatLong = place.getLatLng();
-                Toast.makeText(AskForARide.this, fromLatLong+"", Toast.LENGTH_SHORT).show();
+                fromLatLong.add(place.getLatLng().latitude);
+                fromLatLong.add(place.getLatLng().longitude);
+                Log.d("demo", place.toString());
             }
 
             @Override
@@ -154,14 +154,15 @@ public class AskForARide extends AppCompatActivity {
         efPlaceTo = (EditText) autocompleteFragment_to.getView().findViewById(R.id.places_autocomplete_search_input);
         efPlaceTo.setHint("Enter To Location");
 
-        autocompleteFragment_to.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME));
+        autocompleteFragment_to.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG));
 
         autocompleteFragment_to.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
                 // TODO: Get info about the selected place.
                 Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
-                toLatLong = place.getLatLng();
+                 toLatLong.add(place.getLatLng().latitude);
+                toLatLong.add(place.getLatLng().longitude);
             }
 
             @Override
