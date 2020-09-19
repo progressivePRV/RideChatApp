@@ -147,7 +147,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                 .collection("Requested Rides")
                 .document(userProfile.uid);
 
-        docRefDriver.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+        docRefDriver.addSnapshotListener(DriverMapsActivity.this, new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException error) {
                 if (error != null) {

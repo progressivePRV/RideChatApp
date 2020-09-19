@@ -194,7 +194,7 @@ public class AskForARide extends AppCompatActivity {
                 .collection("Requested Rides")
                 .document(user.uid);
 
-        docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+        docRef.addSnapshotListener(AskForARide.this, new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException error) {
                 if (error != null) {
