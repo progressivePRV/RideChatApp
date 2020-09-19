@@ -287,7 +287,7 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
         //Adding Snapshot listener to the Requested Rides User Document for Drivers
         //Hope it works!!
 
-        //Adding snapshot to the current users list in the chatroom
+        //Adding snapshot to the requested rides in the chatroom
         db.collection("ChatRoomList")
                 .document(chatRoomName)
                 .collection("Requested Rides")
@@ -305,9 +305,13 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
                         case ADDED:
                             Toast.makeText(ChatRoomActivity.this, "It comes to addded", Toast.LENGTH_SHORT).show();
                             RequestedRides added = dc.getDocument().toObject(RequestedRides.class);
-                            Intent intent = new Intent(ChatRoomActivity.this, DriverMapsActivity.class);
-                            intent.putExtra("requestedRides", added);
-                            startActivity(intent);
+                            if(added.rideStatus.equals("REQUESTED")){
+                                Intent intent = new Intent(ChatRoomActivity.this, DriverMapsActivity.class);
+                                intent.putExtra("chatRoomName",chatRoomName);
+                                intent.putExtra("requestedRides", added);
+                                intent.putExtra("userProfile",user);
+                                startActivity(intent);
+                            }
                             break;
                         case MODIFIED:
                             Toast.makeText(ChatRoomActivity.this, "It comes to modified", Toast.LENGTH_SHORT).show();
@@ -417,7 +421,6 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
                 //add your code here to goto next activity
                 //Toast.makeText(this, "why you want to request ride, walk!!!", Toast.LENGTH_LONG).show();
                 Intent i =  new Intent(this,AskForARide.class);
-
                 i.putExtra("chatRoomName",chatRoomName);
                 i.putExtra("user",user);
                 startActivity(i);

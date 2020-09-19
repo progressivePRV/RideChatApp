@@ -12,7 +12,7 @@ public class RequestedRides implements Serializable {
     String riderName;
     String driverId;
     String driverName;
-    HashMap<String, UserProfile> drivers = new HashMap<>();
+    ArrayList<UserProfile> drivers = new ArrayList<>();
     ArrayList<Double> pickUpLocation = new ArrayList<>();
     ArrayList<Double> dropOffLocation = new ArrayList<>();
     String rideStatus;
@@ -49,11 +49,11 @@ public class RequestedRides implements Serializable {
         this.driverName = driverName;
     }
 
-    public HashMap<String, UserProfile> getDrivers() {
+    public ArrayList<UserProfile> getDrivers() {
         return drivers;
     }
 
-    public void setDrivers(HashMap<String, UserProfile> drivers) {
+    public void setDrivers(ArrayList<UserProfile> drivers) {
         this.drivers = drivers;
     }
 

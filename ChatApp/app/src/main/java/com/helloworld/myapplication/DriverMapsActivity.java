@@ -7,6 +7,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -15,7 +16,10 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -32,8 +36,10 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.api.Context;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 //import com.google.maps.DirectionsApi;
 //import com.google.maps.DirectionsApiRequest;
@@ -53,6 +59,7 @@ import static android.provider.SettingsSlicesContract.KEY_LOCATION;
 public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+    private FirebaseFirestore db;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final String KEY_LOCATION = "location";
     private static final String KEY_CAMERA_POSITION = "camera_position";
@@ -61,6 +68,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
     private Location lastKnownLocation;
     private CameraPosition cameraPosition;
     private static final int DEFAULT_ZOOM = 15;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +80,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
         }
 
         setContentView(R.layout.activity_driver_maps);
+        db = FirebaseFirestore.getInstance();
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.driverMap);
@@ -87,6 +96,56 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
 
         // Get the current location of the device and set the position of the map.
         getDeviceLocation();
+
+        //if the driver says yes
+        findViewById(R.id.buttonDriverYes).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(DriverMapsActivity.this, "Sending confirmation. Please wait", Toast.LENGTH_SHORT).show();
+
+                //Adding this driver to the driver list
+                RequestedRides requestedRides = (RequestedRides) getIntent().getExtras().getSerializable("requestedRides");
+                UserProfile userProfile = (UserProfile) getIntent().getExtras().getSerializable("userProfile");
+
+                requestedRides.drivers.add(userProfile);
+                requestedRides.rideStatus = "IN_PROGRESS";
+
+                db.collection("ChatRoomList")
+                        .document(getIntent().getExtras().getString("chatRoomName"))
+                        .collection("Requested Rides")
+                        .document(requestedRides.riderId)
+                        .set(requestedRides)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                showProgressBarDialogWithHandler();
+                                Toast.makeText(DriverMapsActivity.this, "Lets see if it stores without any problem!", Toast.LENGTH_SHORT).show();
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(DriverMapsActivity.this, "Some error occured. Please try again", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+    }
+
+    //for showing the progress dialog
+    public void showProgressBarDialogWithHandler()
+    {
+        progressDialog = new ProgressDialog(DriverMapsActivity.this);
+        progressDialog.setMessage("Fetching your ride details");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        //Handler is set for 30 seconds for the driver to accept the invitation
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                progressDialog.dismiss();
+            }
+        }, 30000);
     }
 
     /**
@@ -129,7 +188,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                             // Set the map's camera position to the current location of the device.
                             lastKnownLocation = task.getResult();
                             if (lastKnownLocation != null) {
-                                
+
 
                                 MarkerOptions marker = new MarkerOptions()
                                         .position( new LatLng(lastKnownLocation.getLatitude(),
@@ -156,6 +215,18 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
 //For changing the vector asset to bitmap
     private BitmapDescriptor bitmapDescriptorFromVector(@DrawableRes int vectorDrawableResourceId) {
         Drawable background = ContextCompat.getDrawable(this, R.drawable.ic_baseline_directions_car_24);
+        background.setBounds(0, 0, background.getIntrinsicWidth(), background.getIntrinsicHeight());
+        Drawable vectorDrawable = ContextCompat.getDrawable(this, vectorDrawableResourceId);
+        vectorDrawable.setBounds(40, 20, vectorDrawable.getIntrinsicWidth() + 40, vectorDrawable.getIntrinsicHeight() + 20);
+        Bitmap bitmap = Bitmap.createBitmap(background.getIntrinsicWidth(), background.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        background.draw(canvas);
+        vectorDrawable.draw(canvas);
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
+    }
+
+    private BitmapDescriptor bitmapDescriptorFromVectorPerson(@DrawableRes int vectorDrawableResourceId) {
+        Drawable background = ContextCompat.getDrawable(this, R.drawable.ic_baseline_person_pin_circle_24);
         background.setBounds(0, 0, background.getIntrinsicWidth(), background.getIntrinsicHeight());
         Drawable vectorDrawable = ContextCompat.getDrawable(this, vectorDrawableResourceId);
         vectorDrawable.setBounds(40, 20, vectorDrawable.getIntrinsicWidth() + 40, vectorDrawable.getIntrinsicHeight() + 20);
@@ -210,9 +281,11 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
         RequestedRides requestedRides = (RequestedRides) getIntent().getExtras().getSerializable("requestedRides");
         LatLng fromLatLong = new LatLng(requestedRides.pickUpLocation.get(0), requestedRides.pickUpLocation.get(1));
         latlngBuilder.include(fromLatLong);
-        mMap.addMarker(new MarkerOptions()
+        MarkerOptions marker = new MarkerOptions()
                 .position(fromLatLong)
-                .title("Pick Up Location"));
+                .title("Pick Up Location");
+        marker.icon(bitmapDescriptorFromVectorPerson(R.drawable.ic_baseline_person_pin_circle_24));
+        mMap.addMarker(marker);
 
         LatLng toLatLng = new LatLng(requestedRides.dropOffLocation.get(0), requestedRides.dropOffLocation.get(1));
         latlngBuilder.include(toLatLng);

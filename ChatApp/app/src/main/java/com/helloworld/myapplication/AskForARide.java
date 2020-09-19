@@ -2,15 +2,21 @@ package com.helloworld.myapplication;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,8 +36,13 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.annotations.NotNull;
+import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.auth.User;
 
 import java.util.ArrayList;
@@ -51,6 +62,9 @@ public class AskForARide extends AppCompatActivity {
     private EditText efPlaceTo;
     private ArrayList<Double> fromLatLong = new ArrayList<>();
     private ArrayList<Double> toLatLong = new ArrayList<>();
+    private ProgressDialog progressDialog;
+    private String chatRoomName;
+    ArrayList<UserProfile> acceptedDrivers = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,7 +84,7 @@ public class AskForARide extends AppCompatActivity {
         sendRideRequest = findViewById(R.id.send_ride_request);
         textInputTo = findViewById(R.id.til_for_to_location);
         textInputFrom = findViewById(R.id.til_for_from_location);
-
+        chatRoomName = getIntent().getExtras().getString("chatRoomName");
         userName.setText(user.firstName+ " " +user.lastName);
         mAuth=FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
@@ -85,23 +99,23 @@ public class AskForARide extends AppCompatActivity {
                   requestedRides.pickUpLocation = fromLatLong;
                   requestedRides.rideStatus = "REQUESTED";
 
-
-                          db.collection("ChatRoomList")
-                                  .document(getIntent().getExtras().getString("chatRoomName"))
-                                  .collection("Requested Rides")
-                                  .document(mAuth.getUid())
-                                  .set(requestedRides)
-                                  .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                      @Override
-                                      public void onComplete(@NonNull Task<Void> task) {
-                                          Toast.makeText(AskForARide.this, "Lets see if it stores without any problem!", Toast.LENGTH_SHORT).show();
-                                      }
-                                  }).addOnFailureListener(new OnFailureListener() {
+                  db.collection("ChatRoomList")
+                          .document(getIntent().getExtras().getString("chatRoomName"))
+                          .collection("Requested Rides")
+                          .document(mAuth.getUid())
+                          .set(requestedRides)
+                          .addOnCompleteListener(new OnCompleteListener<Void>() {
                               @Override
-                              public void onFailure(@NonNull Exception e) {
-                                  Toast.makeText(AskForARide.this, "Some error occured. Please try again", Toast.LENGTH_SHORT).show();
+                              public void onComplete(@NonNull Task<Void> task) {
+                                  showProgressBarDialogWithHandler();
+                                  Toast.makeText(AskForARide.this, "Lets see if it stores without any problem!", Toast.LENGTH_SHORT).show();
                               }
-                          });
+                          }).addOnFailureListener(new OnFailureListener() {
+                      @Override
+                      public void onFailure(@NonNull Exception e) {
+                          Toast.makeText(AskForARide.this, "Some error occured. Please try again", Toast.LENGTH_SHORT).show();
+                      }
+                  });
               }
             }
         });
@@ -171,6 +185,30 @@ public class AskForARide extends AppCompatActivity {
                 Log.i(TAG, "An error occurred: " + status);
             }
         });
+
+
+        //setting snapshot listener to the drivers accepted list and adding it in a list to display it in the alert box
+        DocumentReference docRef = db.collection("ChatRoomList")
+                .document(chatRoomName)
+                .collection("Requested Rides")
+                .document(user.uid);
+
+        docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException error) {
+                if (error != null) {
+                    Log.d("demo:", error+"");
+                    return;
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    RequestedRides ride = snapshot.toObject(RequestedRides.class);
+                    acceptedDrivers = ride.drivers;
+                } else {
+                    System.out.print("Current data: null");
+                }
+            }
+        });
     }
 
     @Override
@@ -195,5 +233,65 @@ public class AskForARide extends AppCompatActivity {
         }else{
             return true;
         }
+    }
+
+    public void setUpAlertDialogDriver(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(AskForARide.this);
+        final View customLayout = AskForARide.this.getLayoutInflater().inflate(R.layout.dialog_accepted_driver_list, null);
+        ArrayAdapter<UserProfile> dataAdapter = new ArrayAdapter<UserProfile>(this,
+                android.R.layout.simple_dropdown_item_1line, acceptedDrivers);
+        //for custom layout
+//        builder.setView(customLayout)
+//                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        ImageView driverImageView = customLayout.findViewById(R.id.acceptedDriverDp);
+//                        TextView driverName = customLayout.findViewById(R.id.acceptedDriverName);
+//
+//                    }
+//                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//            }
+//        });
+
+        builder.setAdapter(dataAdapter, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Toast.makeText(AskForARide.this,"You have selected " + acceptedDrivers.get(which),Toast.LENGTH_LONG).show();
+            }
+        });
+//        builder.setItems(acceptedDrivers, new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                Toast.makeText(AskForARide.this, "Clicked this", Toast.LENGTH_SHORT).show();
+//            }
+//        });
+        final AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
+    //for showing the progress dialog
+    public void showProgressBarDialogWithHandler()
+    {
+        progressDialog = new ProgressDialog(AskForARide.this);
+        progressDialog.setMessage("Loading...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        //Handler is set for 30 seconds for the driver to accept the invitation
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                progressDialog.dismiss();
+                setUpAlertDialogDriver();
+            }
+        }, 30000);
+    }
+
+    //for hiding the progress dialog
+    public void hideProgressBarDialog()
+    {
+        progressDialog.dismiss();
     }
 }
