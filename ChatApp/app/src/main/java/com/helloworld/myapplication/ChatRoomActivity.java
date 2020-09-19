@@ -380,6 +380,7 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
                 //add your code here to goto next activity
                 //Toast.makeText(this, "why you want to request ride, walk!!!", Toast.LENGTH_LONG).show();
                 Intent i =  new Intent(this,AskForARide.class);
+                i.putExtra("chatRoomName",chatRoomName);
                 i.putExtra("user",user);
                 startActivity(i);
 

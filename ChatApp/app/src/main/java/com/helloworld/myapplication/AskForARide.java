@@ -1,5 +1,6 @@
 package com.helloworld.myapplication;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -9,9 +10,15 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.net.PlacesClient;
@@ -20,8 +27,12 @@ import com.google.android.libraries.places.widget.listener.PlaceSelectionListene
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.annotations.NotNull;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.auth.User;
+import com.google.type.LatLng;
 
 import java.util.Arrays;
 
@@ -30,10 +41,16 @@ public class AskForARide extends AppCompatActivity {
     private static final String TAG = "okay";
     UserProfile user;
     TextView userName;
+    FirebaseAuth mAuth;
+    private FirebaseFirestore db;
     TextInputEditText toLocatioin, fromLocation;
     MaterialButton sendRideRequest;
     TextInputLayout textInputTo,textInputFrom;
     String apiKey;
+    private EditText etPlaceFrom;
+    private EditText efPlaceTo;
+    private com.google.android.gms.maps.model.LatLng fromLatLong;
+    private com.google.android.gms.maps.model.LatLng toLatLong;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,43 +74,100 @@ public class AskForARide extends AppCompatActivity {
         textInputFrom = findViewById(R.id.til_for_from_location);
 
         userName.setText(user.firstName+ " " +user.lastName);
-
-        Places.initialize(getApplicationContext(), apiKey);
-        PlacesClient placesClient = Places.createClient(this);
+        mAuth=FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
         sendRideRequest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(isTextInputEditLayoutEmpty(toLocatioin)){
-                    textInputTo.setError(getString(R.string.cannot_be_empty));
-                }else{
-                    textInputTo.setError("");
-                    if (isTextInputEditLayoutEmpty(fromLocation)){
-                        textInputFrom.setError(getString(R.string.cannot_be_empty));
-                    }else{
-                        textInputFrom.setError("");
-                    }
-                }
+              if(checkValidations(etPlaceFrom) && checkValidations(efPlaceTo)) {
+                  RequestedRides requestedRides = new RequestedRides();
+                  requestedRides.riderId = mAuth.getUid();
+                  requestedRides.dropOffLocation = toLatLong;
+                  requestedRides.pickUpLocation = fromLatLong;
+                  requestedRides.rideStatus = "REQUESTED";
+
+                          db.collection("ChatRoomList")
+                                  .document(getIntent().getExtras().getString("chatRoomName"))
+                                  .collection("Requested Rides")
+                                  .document(mAuth.getUid())
+                                  .set(requestedRides)
+                                  .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                      @Override
+                                      public void onComplete(@NonNull Task<Void> task) {
+                                          Toast.makeText(AskForARide.this, "Lets see if it stores without any problem!", Toast.LENGTH_SHORT).show();
+                                      }
+                                  }).addOnFailureListener(new OnFailureListener() {
+                              @Override
+                              public void onFailure(@NonNull Exception e) {
+                                  Toast.makeText(AskForARide.this, "Some error occured. Please try again", Toast.LENGTH_SHORT).show();
+                              }
+                          });
+              }
             }
         });
 
+        String apiKey = getString(R.string.api_key);
 
-        AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
-                getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
-        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME));
+        /**
+         * Initialize Places. For simplicity, the API key is hard-coded. In a production
+         * environment we recommend using a secure mechanism to manage API keys.
+         */
+        if (!Places.isInitialized()) {
+            Places.initialize(getApplicationContext(), apiKey);
+        }
 
-        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+        // Create a new Places client instance.
+        PlacesClient placesClient = Places.createClient(this);
+
+        // Initialize the AutocompleteSupportFragment.
+        AutocompleteSupportFragment autocompleteFragment_from = (AutocompleteSupportFragment)
+                getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment_from);
+
+        etPlaceFrom = (EditText) autocompleteFragment_from.getView().findViewById(R.id.places_autocomplete_search_input);
+        etPlaceFrom.setHint("Enter From Location");
+
+        
+
+        autocompleteFragment_from.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME));
+
+        autocompleteFragment_from.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
-            public void onPlaceSelected(@NotNull Place place) {
+            public void onPlaceSelected(Place place) {
                 // TODO: Get info about the selected place.
                 Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
+                fromLatLong = place.getLatLng();
+                Toast.makeText(AskForARide.this, fromLatLong+"", Toast.LENGTH_SHORT).show();
             }
 
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Log.i(TAG, "An error occurred: " + status);
+            }
+        });
+
+        // Initialize the AutocompleteSupportFragment.
+        AutocompleteSupportFragment autocompleteFragment_to = (AutocompleteSupportFragment)
+                getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment_to);
+
+        efPlaceTo = (EditText) autocompleteFragment_to.getView().findViewById(R.id.places_autocomplete_search_input);
+        efPlaceTo.setHint("Enter To Location");
+
+        autocompleteFragment_to.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME));
+
+        autocompleteFragment_to.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                // TODO: Get info about the selected place.
+                Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
+                toLatLong = place.getLatLng();
+            }
 
             @Override
-            public void onError(@NotNull Status status) {
+            public void onError(Status status) {
                 // TODO: Handle the error.
-                Log.d(TAG, "An error occurred: " + status);
+                Log.i(TAG, "An error occurred: " + status);
             }
         });
     }
@@ -103,11 +177,22 @@ public class AskForARide extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    boolean isTextInputEditLayoutEmpty(TextInputEditText t){
-        if(t.getText().toString().equals("")){
-            return true;
-        }else{
+//    boolean isTextInputEditLayoutEmpty(TextInputEditText t){
+//        if(t.getText().toString().equals("")){
+//            return true;
+//        }else{
+//            return false;
+//        }
+//    }
+
+
+    //For checking the empty strings
+    public boolean checkValidations(EditText editText){
+        if(editText.getText().toString().trim().equals("")){
+            editText.setError("Cannot be empty");
             return false;
+        }else{
+            return true;
         }
     }
 }

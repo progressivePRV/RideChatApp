@@ -44,4 +44,6 @@
     <string name="Location">Location</string>
     <string name="from_tag">From</string>
     <string name="send_ride_request">Send Ride Request</string>
+
+    <string name="api_key">AIzaSyBuIvBN797lPyHRIASQJzk77k0ry-UZTCI</string>
 </resources>
