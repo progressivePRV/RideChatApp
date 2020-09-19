@@ -16,7 +16,7 @@
     </include>
 
     <fragment
-        android:id="@+id/map"
+        android:id="@+id/driverMap"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="412dp"
         android:layout_height="411dp"
@@ -45,7 +45,7 @@
         android:text="@string/confirmRideNo"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/map" />
+        app:layout_constraintTop_toBottomOf="@+id/driverMap" />
 
     <Button
         android:id="@+id/button2"
@@ -54,6 +54,6 @@
         android:text="@string/confirmRideYes"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/map" />
+        app:layout_constraintTop_toBottomOf="@+id/driverMap" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
