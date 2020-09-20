@@ -5,6 +5,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.ListView;
@@ -38,9 +39,6 @@ public class Driver_list extends AppCompatActivity implements rvAdapterForDriver
         rv.setLayoutManager(rvLayoutManager);
         rvAdapter =  new rvAdapterForDriverList(this,drivers);
         rv.setAdapter(rvAdapter);
-
-
-
     }
 
     @Override
@@ -52,5 +50,9 @@ public class Driver_list extends AppCompatActivity implements rvAdapterForDriver
     @Override
     public void DriverSelect(UserProfile u) {
         Toast.makeText(this, "driver "+u.firstName+" selected", Toast.LENGTH_SHORT).show();
+        Intent data = new Intent();
+        data.putExtra("driverProfile", u);
+        setResult(250, data);
+        finish();
     }
 }

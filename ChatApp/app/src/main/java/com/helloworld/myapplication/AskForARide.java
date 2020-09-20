@@ -216,19 +216,70 @@ public class AskForARide extends AppCompatActivity {
         });
     }
 
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
+        //Here the driver is selected and the rider is being forwarded to the next page!
+        if(requestCode == 150 && resultCode == 250 && data!=null){
+            UserProfile driverProfile = (UserProfile) data.getExtras().getSerializable("driverProfile");
+            db = FirebaseFirestore.getInstance();
+            updateRideDetails.driverId = driverProfile.uid;
+            updateRideDetails.driverName = driverProfile.firstName +" "+ driverProfile.lastName;
+            updateRideDetails.rideStatus = "ACCEPTED";
+
+            db.collection("ChatRoomList")
+                    .document(getIntent().getExtras().getString("chatRoomName"))
+                    .collection("Requested Rides")
+                    .document(updateRideDetails.riderId)
+                    .set(updateRideDetails)
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if(task.isSuccessful()){
+                                progressDialog = new ProgressDialog(AskForARide.this);
+                                progressDialog.setMessage("Fetching driver location...");
+                                progressDialog.setCancelable(false);
+                                progressDialog.show();
+                                final DocumentReference docRefDriver = db.collection("ChatRoomList")
+                                        .document(getIntent().getExtras().getString("chatRoomName"))
+                                        .collection("Requested Rides")
+                                        .document(updateRideDetails.riderId);
+
+                                docRefDriver.addSnapshotListener(AskForARide.this, new EventListener<DocumentSnapshot>() {
+                                    @Override
+                                    public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
+                                        if (error != null) {
+                                            Log.w("TAG", "listen:error", error);
+                                            progressDialog.hide();
+                                            return;
+                                        }
+
+                                        if(value!=null){
+                                            RequestedRides rider = value.toObject(RequestedRides.class);
+                                            if(rider.driverLocation!=null && !rider.driverLocation.isEmpty()){
+                                                Intent intent = new Intent(AskForARide.this,RiderOnRideActivity.class);
+                                                intent.putExtra("requestedRide",rider);
+                                                progressDialog.hide();
+                                                startActivity(intent);
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                            else {
+                                Toast.makeText(AskForARide.this, "Some issue occured in ride", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Toast.makeText(AskForARide.this, "Some error occured. Please try again", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
-
-//    boolean isTextInputEditLayoutEmpty(TextInputEditText t){
-//        if(t.getText().toString().equals("")){
-//            return true;
-//        }else{
-//            return false;
-//        }
-//    }
-
 
     //For checking the empty strings
     public boolean checkValidations(EditText editText){
@@ -238,105 +289,6 @@ public class AskForARide extends AppCompatActivity {
         }else{
             return true;
         }
-    }
-
-    public void setUpAlertDialogDriver(){
-        AlertDialog.Builder builder = new AlertDialog.Builder(AskForARide.this);
-        final View customLayout = AskForARide.this.getLayoutInflater().inflate(R.layout.dialog_accepted_driver_list, null);
-        final ArrayList<String> acceptedDriversName = new ArrayList<>();
-        for(UserProfile u : acceptedDrivers){
-            acceptedDriversName.add(u.firstName);
-        }
-        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_dropdown_item_1line, acceptedDriversName);
-        //for custom layout
-//        builder.setView(customLayout)
-//                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which) {
-//                        ImageView driverImageView = customLayout.findViewById(R.id.acceptedDriverDp);
-//                        TextView driverName = customLayout.findViewById(R.id.acceptedDriverName);
-//
-//                    }
-//                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-//            @Override
-//            public void onClick(DialogInterface dialog, int which) {
-//            }
-//        });
-
-        builder.setAdapter(dataAdapter, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(AskForARide.this,"You have selected " + acceptedDriversName.get(which),Toast.LENGTH_LONG).show();
-                //Here the user has selected a driver. So the driver name and the ID should get updated
-                db = FirebaseFirestore.getInstance();
-                updateRideDetails.driverId = updateRideDetails.drivers.get(which).uid;
-                updateRideDetails.driverName = updateRideDetails.drivers.get(which).firstName+" "+updateRideDetails.drivers.get(which).lastName;
-                updateRideDetails.rideStatus = "ACCEPTED";
-                db.collection("ChatRoomList")
-                        .document(getIntent().getExtras().getString("chatRoomName"))
-                        .collection("Requested Rides")
-                        .document(updateRideDetails.riderId)
-                        .set(updateRideDetails)
-                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if(task.isSuccessful()){
-
-                                    progressDialog = new ProgressDialog(AskForARide.this);
-                                    progressDialog.setMessage("Fetching driver location...");
-                                    progressDialog.setCancelable(false);
-                                    progressDialog.show();
-
-                                    final DocumentReference docRefDriver = db.collection("ChatRoomList")
-                                            .document(getIntent().getExtras().getString("chatRoomName"))
-                                            .collection("Requested Rides")
-                                            .document(updateRideDetails.riderId);
-
-                                    docRefDriver.addSnapshotListener(AskForARide.this, new EventListener<DocumentSnapshot>() {
-                                        @Override
-                                        public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
-                                            if (error != null) {
-                                                Log.w("TAG", "listen:error", error);
-                                                progressDialog.hide();
-                                                return;
-                                            }
-
-                                            if(value!=null){
-                                                RequestedRides rider = value.toObject(RequestedRides.class);
-                                                if(rider.driverLocation!=null && !rider.driverLocation.isEmpty()){
-                                                    Intent intent = new Intent(AskForARide.this,RiderOnRideActivity.class);
-                                                    intent.putExtra("requestedRide",rider);
-                                                    progressDialog.hide();
-                                                    startActivity(intent);
-                                                }
-                                            }
-                                        }
-                                    });
-                                }
-                                else {
-                                    Toast.makeText(AskForARide.this, "Some issue occured in ride", Toast.LENGTH_SHORT).show();
-                                }
-
-                                //showProgressBarDialogWithHandler();
-                                //Toast.makeText(AskForARide.this, "Lets see if it stores without any problem!", Toast.LENGTH_SHORT).show();
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(AskForARide.this, "Some error occured. Please try again", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        });
-//        builder.setItems(acceptedDrivers, new DialogInterface.OnClickListener() {
-//            @Override
-//            public void onClick(DialogInterface dialog, int which) {
-//                Toast.makeText(AskForARide.this, "Clicked this", Toast.LENGTH_SHORT).show();
-//            }
-//        });
-        final AlertDialog alertDialog = builder.create();
-        alertDialog.show();
     }
 
     //for showing the progress dialog
@@ -353,18 +305,17 @@ public class AskForARide extends AppCompatActivity {
             public void run() {
                 progressDialog.dismiss();
                 getToDriverListActivity();
-                //setUpAlertDialogDriver();
             }
         }, 30000);
     }
 
     void getToDriverListActivity(){
         if (acceptedDrivers.size()==0){
-            Toast.makeText(this, "NO Driver is ready", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Sorry, No Driver is available at this moment", Toast.LENGTH_SHORT).show();
         }
         Intent i = new Intent(this, Driver_list.class);
         i.putExtra("drivers",acceptedDrivers);
-        startActivity(i);
+        startActivityForResult(i, 150);
     }
 
     @Override
