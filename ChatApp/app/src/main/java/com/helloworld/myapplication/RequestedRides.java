@@ -15,7 +15,10 @@ public class RequestedRides implements Serializable {
     ArrayList<UserProfile> drivers = new ArrayList<>();
     ArrayList<Double> pickUpLocation = new ArrayList<>();
     ArrayList<Double> dropOffLocation = new ArrayList<>();
+    String toLocation;
+    String fromLocation;
     String rideStatus;
+    ArrayList<Double> driverLocation = new ArrayList<>();
 
     public String getRiderId() {
         return riderId;
@@ -77,8 +80,33 @@ public class RequestedRides implements Serializable {
         return rideStatus;
     }
 
+    public String getToLocation() {
+        return toLocation;
+    }
+
+    public void setToLocation(String toLocation) {
+        this.toLocation = toLocation;
+    }
+
+    public String getFromLocation() {
+        return fromLocation;
+    }
+
+    public void setFromLocation(String fromLocation) {
+        this.fromLocation = fromLocation;
+    }
+
     public void setRideStatus(String rideStatus) {
         this.rideStatus = rideStatus;
+    }
+
+
+    public ArrayList<Double> getDriverLocation() {
+        return driverLocation;
+    }
+
+    public void setDriverLocation(ArrayList<Double> driverLocation) {
+        this.driverLocation = driverLocation;
     }
 
     @Override
@@ -92,6 +120,9 @@ public class RequestedRides implements Serializable {
                 ", pickUpLocation=" + pickUpLocation +
                 ", dropOffLocation=" + dropOffLocation +
                 ", rideStatus='" + rideStatus + '\'' +
+                ", toLocation='" + toLocation + '\'' +
+                ", fromLocation='" + fromLocation + '\'' +
+                ", driverLocation='" + driverLocation + '\'' +
                 '}';
     }
 }

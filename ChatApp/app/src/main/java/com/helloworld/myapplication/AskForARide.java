@@ -96,9 +96,12 @@ public class AskForARide extends AppCompatActivity {
               if(checkValidations(etPlaceFrom) && checkValidations(efPlaceTo)) {
                   RequestedRides requestedRides = new RequestedRides();
                   requestedRides.riderId = mAuth.getUid();
+                  requestedRides.riderName = user.firstName+" "+user.lastName;
                   requestedRides.dropOffLocation = toLatLong;
                   requestedRides.pickUpLocation = fromLatLong;
                   requestedRides.rideStatus = "REQUESTED";
+                  requestedRides.toLocation=efPlaceTo.getText().toString();
+                  requestedRides.fromLocation=etPlaceFrom.getText().toString();
 
                   db.collection("ChatRoomList")
                           .document(getIntent().getExtras().getString("chatRoomName"))
@@ -278,8 +281,45 @@ public class AskForARide extends AppCompatActivity {
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
-                                showProgressBarDialogWithHandler();
-                                Toast.makeText(AskForARide.this, "Lets see if it stores without any problem!", Toast.LENGTH_SHORT).show();
+                                if(task.isSuccessful()){
+
+                                    progressDialog = new ProgressDialog(AskForARide.this);
+                                    progressDialog.setMessage("Fetching driver location...");
+                                    progressDialog.setCancelable(false);
+                                    progressDialog.show();
+
+                                    final DocumentReference docRefDriver = db.collection("ChatRoomList")
+                                            .document(getIntent().getExtras().getString("chatRoomName"))
+                                            .collection("Requested Rides")
+                                            .document(updateRideDetails.riderId);
+
+                                    docRefDriver.addSnapshotListener(AskForARide.this, new EventListener<DocumentSnapshot>() {
+                                        @Override
+                                        public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
+                                            if (error != null) {
+                                                Log.w("TAG", "listen:error", error);
+                                                progressDialog.hide();
+                                                return;
+                                            }
+
+                                            if(value!=null){
+                                                RequestedRides rider = value.toObject(RequestedRides.class);
+                                                if(rider.driverLocation!=null && !rider.driverLocation.isEmpty()){
+                                                    Intent intent = new Intent(AskForARide.this,RiderOnRideActivity.class);
+                                                    intent.putExtra("requestedRide",rider);
+                                                    progressDialog.hide();
+                                                    startActivity(intent);
+                                                }
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    Toast.makeText(AskForARide.this, "Some issue occured in ride", Toast.LENGTH_SHORT).show();
+                                }
+
+                                //showProgressBarDialogWithHandler();
+                                //Toast.makeText(AskForARide.this, "Lets see if it stores without any problem!", Toast.LENGTH_SHORT).show();
                             }
                         }).addOnFailureListener(new OnFailureListener() {
                     @Override

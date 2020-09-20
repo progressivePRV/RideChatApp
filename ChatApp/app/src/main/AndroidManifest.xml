@@ -17,7 +17,6 @@
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
-
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -45,8 +44,14 @@
             android:value="@string/google_maps_key" />
 
         <activity
+            android:name=".RiderOnRideActivity"
+            android:label="@string/title_activity_rider_on_ride"></activity>
+        <activity
+            android:name=".OnRideActivity"
+            android:label="@string/title_activity_on_ride" />
+        <activity
             android:name=".DriverMapsActivity"
-            android:label="@string/title_activity_driver_maps"></activity>
+            android:label="@string/title_activity_driver_maps" />
         <activity android:name=".AskForARide" />
         <activity android:name=".showProfile" />
         <activity android:name=".EditProfileActivity" />

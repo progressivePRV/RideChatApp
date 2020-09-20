@@ -50,4 +50,8 @@
     <string name="Riders_Name">Riders Name</string>
     <string name="confirmRideNo">No</string>
     <string name="confirmRideYes">Yes</string>
+    <string name="fromLabel">"From: "</string>
+    <string name="tolabel">To:</string>
+    <string name="title_activity_on_ride">Map</string>
+    <string name="title_activity_rider_on_ride">Map</string>
 </resources>

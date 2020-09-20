@@ -10,8 +10,8 @@
     <include
         android:id="@+id/include2"
         layout="@layout/toolbar_for_sidebar"
-        tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="80dp">
+        tools:layout_editor_absoluteX="-16dp"
+        tools:layout_editor_absoluteY="0dp">
 
     </include>
 
@@ -29,7 +29,7 @@
         tools:context=".DriverMapsActivity" />
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/textViewRiderName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="72dp"
@@ -55,5 +55,53 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/driverMap" />
+
+    <TextView
+        android:id="@+id/textViewFromLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="9dp"
+        android:text="@string/fromLabel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewRiderName" />
+
+    <TextView
+        android:id="@+id/textViewToLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="9dp"
+        android:text="@string/tolabel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewFromLocation" />
+
+    <TextView
+        android:id="@+id/riderName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="36dp"
+        android:layout_marginTop="72dp"
+        android:text="TextView"
+        app:layout_constraintStart_toEndOf="@+id/textViewRiderName"
+        app:layout_constraintTop_toTopOf="@+id/include2" />
+
+    <TextView
+        android:id="@+id/fromLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="80dp"
+        android:layout_marginTop="8dp"
+        android:text="TextView"
+        app:layout_constraintStart_toEndOf="@+id/textViewFromLocation"
+        app:layout_constraintTop_toBottomOf="@+id/riderName" />
+
+    <TextView
+        android:id="@+id/toLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="8dp"
+        android:text="TextView"
+        app:layout_constraintStart_toEndOf="@+id/textViewToLocation"
+        app:layout_constraintTop_toBottomOf="@+id/fromLocation" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

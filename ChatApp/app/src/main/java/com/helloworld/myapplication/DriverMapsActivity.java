@@ -9,6 +9,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -20,6 +21,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.LocationServices;
@@ -77,6 +79,10 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
     private String chatRoomName;
     private UserProfile userProfile;
     private RequestedRides updateRides;
+    boolean isYesClicked;
+    TextView riderName;
+    TextView toLocation;
+    TextView fromLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,6 +103,17 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
         chatRoomName = getIntent().getExtras().getString("chatRoomName");
         userProfile = (UserProfile) getIntent().getExtras().getSerializable("userProfile");
 
+        isYesClicked=false;
+
+        final RequestedRides requestedRides = (RequestedRides) getIntent().getExtras().getSerializable("requestedRides");
+        riderName=findViewById(R.id.riderName);
+        toLocation=findViewById(R.id.toLocation);
+        fromLocation=findViewById(R.id.fromLocation);
+
+        riderName.setText(requestedRides.riderName);
+        toLocation.setText(requestedRides.toLocation);
+        fromLocation.setText(requestedRides.fromLocation);
+
         // Prompt the user for permission.
         getLocationPermission();
         // [END_EXCLUDE]
@@ -111,10 +128,17 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
         findViewById(R.id.buttonDriverYes).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                isYesClicked=true;
                 Toast.makeText(DriverMapsActivity.this, "Sending confirmation. Please wait", Toast.LENGTH_SHORT).show();
 
+                progressDialog = new ProgressDialog(DriverMapsActivity.this);
+                progressDialog.setMessage("Fetching your ride details");
+                progressDialog.setCancelable(false);
+                progressDialog.show();
+
                 //Adding this driver to the driver list
-                RequestedRides requestedRides = (RequestedRides) getIntent().getExtras().getSerializable("requestedRides");
+
+
 
 
                 requestedRides.drivers.add(userProfile);
@@ -128,56 +152,141 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
-                                showProgressBarDialogWithHandler();
-                                Toast.makeText(DriverMapsActivity.this, "Lets see if it stores without any problem!", Toast.LENGTH_SHORT).show();
+                                //showProgressBarDialogWithHandler();
+
+                                //Toast.makeText(DriverMapsActivity.this, "Lets see if it stores without any problem!", Toast.LENGTH_SHORT).show();
+
+                                final DocumentReference docRefDriver = db.collection("ChatRoomList")
+                                        .document(chatRoomName)
+                                        .collection("Requested Rides")
+                                        .document(requestedRides.riderId);
+
+                                docRefDriver.addSnapshotListener(DriverMapsActivity.this,new EventListener<DocumentSnapshot>() {
+                                    @Override
+                                    public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException error) {
+                                        if (error != null) {
+                                            progressDialog.dismiss();
+                                            Log.d("demo:", error+"");
+                                            return;
+                                        }
+
+                                        if (snapshot != null && snapshot.exists()) {
+                                            updateRides = snapshot.toObject(RequestedRides.class);
+                                            //showProgressBarDialogWithHandler();
+                                            if(updateRides.rideStatus.equals("ACCEPTED")){
+                                                if(updateRides.driverId.equals(userProfile.uid)){
+                                                    ArrayList<Double> driverLocation = new ArrayList<>();
+                                                    driverLocation.add(lastKnownLocation.getLatitude());
+                                                    driverLocation.add(lastKnownLocation.getLongitude());
+
+                                                    updateRides.setDriverLocation(driverLocation);
+                                                    //updateRides.setDrivers(null);
+
+                                                    docRefDriver.set(updateRides).addOnCompleteListener(DriverMapsActivity.this, new OnCompleteListener<Void>() {
+                                                        @Override
+                                                        public void onComplete(@NonNull Task<Void> task) {
+                                                            if(task.isSuccessful()){
+                                                                progressDialog.dismiss();
+                                                                Toast.makeText(DriverMapsActivity.this, "You have been selected for this ride.. Wait the intent will come soon", Toast.LENGTH_SHORT).show();
+                                                                Intent intent= new Intent(DriverMapsActivity.this,OnRideActivity.class);
+                                                                intent.putExtra("requestedRide",updateRides);
+                                                                //intent.putExtra("driverLatitude",lastKnownLocation.getLatitude());
+                                                                //intent.putExtra("driverLongitude",lastKnownLocation.getLongitude());
+                                                                startActivity(intent);
+                                                            }
+                                                            else{
+                                                                progressDialog.dismiss();
+                                                                Toast.makeText(DriverMapsActivity.this, "There was some problem with the ride. Ride cancled", Toast.LENGTH_SHORT).show();
+                                                            }
+                                                        }
+                                                    });
+
+
+                                                }else{
+                                                    progressDialog.dismiss();
+                                                    Toast.makeText(DriverMapsActivity.this, "Sorry, the ride is not available", Toast.LENGTH_SHORT).show();
+                                                    finish();
+                                                }
+                                            }
+
+
+                                        } else {
+                                            System.out.print("Current data: null");
+                                            progressDialog.dismiss();
+                                        }
+                                    }
+                                });
                             }
                         }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
+                        progressDialog.hide();
                         Toast.makeText(DriverMapsActivity.this, "Some error occured. Please try again", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
         });
 
-        //Adding listener if we see that the driver is picked
-        //setting snapshot listener to the drivers accepted list and adding it in a list to display it in the alert box
-        DocumentReference docRefDriver = db.collection("ChatRoomList")
-                .document(chatRoomName)
-                .collection("Requested Rides")
-                .document(userProfile.uid);
 
-        docRefDriver.addSnapshotListener(DriverMapsActivity.this, new EventListener<DocumentSnapshot>() {
+        Handler handler=new Handler();
+        handler.postDelayed(new Runnable() {
             @Override
-            public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException error) {
-                if (error != null) {
-                    Log.d("demo:", error+"");
-                    return;
+            public void run() {
+                if(!isYesClicked){
+                    Toast.makeText(DriverMapsActivity.this, "Ride rejected", Toast.LENGTH_SHORT).show();
+                    finish();
                 }
+            }
+        },30000);
 
-                if (snapshot != null && snapshot.exists()) {
-                    updateRides = snapshot.toObject(RequestedRides.class);
-
-                } else {
-                    System.out.print("Current data: null");
+        findViewById(R.id.buttonDriverNo).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!isYesClicked){
+                    Toast.makeText(DriverMapsActivity.this, "Ride rejected", Toast.LENGTH_SHORT).show();
+                    finish();
                 }
             }
         });
+
+        //Adding listener if we see that the driver is picked
+        //setting snapshot listener to the drivers accepted list and adding it in a list to display it in the alert box
+//        DocumentReference docRefDriver = db.collection("ChatRoomList")
+//                .document(chatRoomName)
+//                .collection("Requested Rides")
+//                .document(userProfile.uid);
+//
+//        docRefDriver.addSnapshotListener(DriverMapsActivity.this, new EventListener<DocumentSnapshot>() {
+//            @Override
+//            public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException error) {
+//                if (error != null) {
+//                    Log.d("demo:", error+"");
+//                    return;
+//                }
+//
+//                if (snapshot != null && snapshot.exists()) {
+//                    updateRides = snapshot.toObject(RequestedRides.class);
+//
+//                } else {
+//                    System.out.print("Current data: null");
+//                }
+//            }
+//        });
     }
 
     //for showing the progress dialog
     public void showProgressBarDialogWithHandler()
     {
-        progressDialog = new ProgressDialog(DriverMapsActivity.this);
-        progressDialog.setMessage("Fetching your ride details");
-        progressDialog.setCancelable(false);
-        progressDialog.show();
+//        progressDialog = new ProgressDialog(DriverMapsActivity.this);
+//        progressDialog.setMessage("Fetching your ride details");
+//        progressDialog.setCancelable(false);
+//        progressDialog.show();
 
         //Handler is set for 30 seconds for the driver to accept the invitation
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            public void run() {
-                progressDialog.dismiss();
+        //Handler handler = new Handler();
+//        handler.postDelayed(new Runnable() {
+//            public void run() {
+//                progressDialog.dismiss();
                 if(updateRides.rideStatus.equals("ACCEPTED")){
                     if(updateRides.driverId.equals(userProfile.uid)){
                         Toast.makeText(DriverMapsActivity.this, "You have been selected for this ride.. Wait the intent will come soon", Toast.LENGTH_SHORT).show();
@@ -186,8 +295,8 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                         finish();
                     }
                 }
-            }
-        }, 40000);
+//            }
+//        }, 40000);
     }
 
     /**
