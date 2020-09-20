@@ -60,7 +60,7 @@ public class frag_users extends Fragment {
     }
 
     DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("users");
-    ArrayList<User> users = new ArrayList<>();
+    ArrayList<UserProfile> users = new ArrayList<>();
     RecyclerView rv;
     RecyclerView.Adapter rvAdapter;
     RecyclerView.LayoutManager rvLayoutManager;
@@ -84,7 +84,7 @@ public class frag_users extends Fragment {
                 //String value = dataSnapshot.getValue(String.class);
                 //Log.d(TAG, "Value is: " + value);
                 for (DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
-                    User u  = postSnapshot.getValue(User.class);
+                    UserProfile u  = postSnapshot.getValue(UserProfile.class);
                     users.add(u);
                     Log.d(TAG, postSnapshot.toString());
                 }

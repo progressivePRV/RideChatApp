@@ -207,7 +207,7 @@ public class AskForARide extends AppCompatActivity {
 
                 if (snapshot != null && snapshot.exists()) {
                     updateRideDetails = snapshot.toObject(RequestedRides.class);
-                    acceptedDrivers = new ArrayList<>();
+                   // acceptedDrivers = new ArrayList<>();
                     acceptedDrivers = updateRideDetails.drivers;
                 } else {
                     System.out.print("Current data: null");
@@ -352,9 +352,25 @@ public class AskForARide extends AppCompatActivity {
         handler.postDelayed(new Runnable() {
             public void run() {
                 progressDialog.dismiss();
-                setUpAlertDialogDriver();
+                getToDriverListActivity();
+                //setUpAlertDialogDriver();
             }
         }, 30000);
+    }
+
+    void getToDriverListActivity(){
+        if (acceptedDrivers.size()==0){
+            Toast.makeText(this, "NO Driver is ready", Toast.LENGTH_SHORT).show();
+        }
+        Intent i = new Intent(this, Driver_list.class);
+        i.putExtra("drivers",acceptedDrivers);
+        startActivity(i);
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
     }
 
     //for hiding the progress dialog

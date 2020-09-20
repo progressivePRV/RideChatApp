@@ -109,7 +109,7 @@ public class SidebarActivity extends AppCompatActivity implements rvAdapterForUs
     }
 
     @Override
-    public void seeUserProfile(User u) {
+    public void seeUserProfile(UserProfile u) {
         Intent i = new Intent(this,showProfile.class);
         i.putExtra("user",u);
         startActivity(i);

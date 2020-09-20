@@ -32,7 +32,7 @@ public class showProfile extends AppCompatActivity {
         final TextView textViewCity = findViewById(R.id.textViewCity);
         final ImageView profileImage = findViewById(R.id.imageViewProfileImage);
 
-        User u = (User) getIntent().getSerializableExtra("user");
+        UserProfile u = (UserProfile) getIntent().getSerializableExtra("user");
         Picasso.get().load(u.profileImage).into(profileImage);
         textViewFirstName.setText(u.firstName);
         textViewLastName.setText(u.lastName);

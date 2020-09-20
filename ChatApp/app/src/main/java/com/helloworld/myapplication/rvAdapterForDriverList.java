@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -18,30 +17,30 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
-public class rvAdapterForUsersList extends RecyclerView.Adapter<rvAdapterForUsersList.ViewHolder> {
+public class rvAdapterForDriverList extends RecyclerView.Adapter<rvAdapterForDriverList.ViewHolder> {
 
     private static final String TAG = "okay";
-    public static ToInteractWithUserListFrag interact;
+    public static rvAdapterForDriverList.ToInteractWithDriverList interact;
     Context ctx;
     ArrayList<UserProfile> users =  new ArrayList<>();
 
-    public rvAdapterForUsersList(Context ctx, ArrayList<UserProfile> users) {
+    public rvAdapterForDriverList(Context ctx, ArrayList<UserProfile> users) {
         this.ctx = ctx;
         this.users = users;
     }
 
     @NonNull
     @Override
-    public rvAdapterForUsersList.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public rvAdapterForDriverList.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         ConstraintLayout cl = (ConstraintLayout) LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_for_users_list,parent,false);
 //        LinearLayout ll = (LinearLayout)
-        ViewHolder view = new ViewHolder(cl);
+        rvAdapterForDriverList.ViewHolder view = new rvAdapterForDriverList.ViewHolder(cl);
         return view;
     }
 
     @Override
-    public void onBindViewHolder(@NonNull rvAdapterForUsersList.ViewHolder holder, final int position) {
-        interact = (ToInteractWithUserListFrag) ctx;
+    public void onBindViewHolder(@NonNull rvAdapterForDriverList.ViewHolder holder, final int position) {
+        interact = (rvAdapterForDriverList.ToInteractWithDriverList) ctx;
         UserProfile u = users.get(position);
         Log.d(TAG, "onBindViewHolder: printing user :"+u.firstName);
         String name = u.firstName + " " + u.lastName;
@@ -64,7 +63,7 @@ public class rvAdapterForUsersList extends RecyclerView.Adapter<rvAdapterForUser
         holder.cl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                interact.seeUserProfile(users.get(position));
+                interact.DriverSelect(users.get(position));
             }
         });
     }
@@ -87,7 +86,8 @@ public class rvAdapterForUsersList extends RecyclerView.Adapter<rvAdapterForUser
 
     }
 
-    public interface ToInteractWithUserListFrag{
-        void seeUserProfile(UserProfile u);
+    public interface ToInteractWithDriverList{
+        void DriverSelect(UserProfile u);
     }
 }
+
