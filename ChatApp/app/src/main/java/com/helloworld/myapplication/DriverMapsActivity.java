@@ -45,8 +45,10 @@ import com.google.api.Context;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firestore.v1.WriteResult;
 
 //import com.google.maps.DirectionsApi;
 //import com.google.maps.DirectionsApiRequest;
@@ -141,11 +143,15 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                 requestedRides.drivers.add(userProfile);
                 requestedRides.rideStatus = "IN_PROGRESS";
 
-                db.collection("ChatRoomList")
+
+                DocumentReference driverReference =  db.collection("ChatRoomList")
                         .document(chatRoomName)
                         .collection("Requested Rides")
-                        .document(requestedRides.riderId)
-                        .set(requestedRides)
+                        .document(requestedRides.riderId);
+
+// Atomically add a new region to the "regions" array field.
+                       driverReference.update("drivers",
+                        FieldValue.arrayUnion(userProfile))
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
