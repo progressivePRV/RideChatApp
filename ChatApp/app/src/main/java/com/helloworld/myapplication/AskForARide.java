@@ -52,12 +52,12 @@ public class AskForARide extends AppCompatActivity {
 
     private static final String TAG = "okay";
     UserProfile user;
-    TextView userName;
+    //TextView userName;
     FirebaseAuth mAuth;
     private FirebaseFirestore db;
     TextInputEditText toLocatioin, fromLocation;
     MaterialButton sendRideRequest;
-    TextInputLayout textInputTo,textInputFrom;
+    //TextInputLayout textInputTo,textInputFrom;
     private EditText etPlaceFrom;
     private EditText efPlaceTo;
     private ArrayList<Double> fromLatLong = new ArrayList<>();
@@ -66,6 +66,9 @@ public class AskForARide extends AppCompatActivity {
     private String chatRoomName;
     ArrayList<UserProfile> acceptedDrivers = new ArrayList<>();
     private RequestedRides updateRideDetails;
+    ImageView fromImage;
+    ImageView toImage;
+    ImageView moreImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,14 +82,22 @@ public class AskForARide extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         user = (UserProfile) getIntent().getSerializableExtra("user");
-        toLocatioin = findViewById(R.id.to_tiet_main);
-        fromLocation = findViewById(R.id.from_tiet_main);
-        userName = findViewById(R.id.user_name_in_AskForaRide);
+        //toLocatioin = findViewById(R.id.to_tiet_main);
+        //fromLocation = findViewById(R.id.from_tiet_main);
+        //userName = findViewById(R.id.user_name_in_AskForaRide);
+        fromImage=findViewById(R.id.imageViewFrom);
+        toImage=findViewById(R.id.imageViewTo);
+        moreImage=findViewById(R.id.imageViewMore);
+
+        fromImage.setImageResource(R.drawable.rec);
+        toImage.setImageResource(R.drawable.placeholder);
+        moreImage.setImageResource(R.drawable.more);
+
         sendRideRequest = findViewById(R.id.send_ride_request);
-        textInputTo = findViewById(R.id.til_for_to_location);
-        textInputFrom = findViewById(R.id.til_for_from_location);
+        //textInputTo = findViewById(R.id.til_for_to_location);
+        //textInputFrom = findViewById(R.id.til_for_from_location);
         chatRoomName = getIntent().getExtras().getString("chatRoomName");
-        userName.setText(user.firstName+ " " +user.lastName);
+        //userName.setText(user.firstName+ " " +user.lastName);
         mAuth=FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
