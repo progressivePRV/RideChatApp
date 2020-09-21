@@ -205,9 +205,11 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                                                                                         Toast.makeText(DriverMapsActivity.this, "You have been selected for this ride.. Wait the intent will come soon", Toast.LENGTH_SHORT).show();
                                                                                         Intent intent= new Intent(DriverMapsActivity.this,OnRideActivity.class);
                                                                                         intent.putExtra("requestedRide",updateRides);
+                                                                                        intent.putExtra("chatRoomName",chatRoomName);
                                                                                         //intent.putExtra("driverLatitude",lastKnownLocation.getLatitude());
                                                                                         //intent.putExtra("driverLongitude",lastKnownLocation.getLongitude());
                                                                                         startActivity(intent);
+                                                                                        finish();
                                                                                     }
                                                                                     else{
                                                                                         progressDialog.dismiss();

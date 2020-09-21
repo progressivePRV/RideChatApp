@@ -260,9 +260,11 @@ public class AskForARide extends AppCompatActivity {
                                             RequestedRides rider = value.toObject(RequestedRides.class);
                                             if(rider.driverLocation!=null && !rider.driverLocation.isEmpty()){
                                                 Intent intent = new Intent(AskForARide.this,RiderOnRideActivity.class);
+                                                intent.putExtra("chatRoomName",chatRoomName);
                                                 intent.putExtra("requestedRide",rider);
                                                 progressDialog.hide();
                                                 startActivity(intent);
+                                                finish();
                                             }
                                         }
                                     }

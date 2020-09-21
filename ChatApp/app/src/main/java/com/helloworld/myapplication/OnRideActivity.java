@@ -2,11 +2,14 @@ package com.helloworld.myapplication;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -14,6 +17,7 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -28,8 +32,13 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 
 public class OnRideActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -44,6 +53,9 @@ public class OnRideActivity extends FragmentActivity implements OnMapReadyCallba
     private CameraPosition cameraPosition;
     private static final int DEFAULT_ZOOM = 15;
     private ProgressDialog progressDialog;
+    private RequestedRides rider;
+    private String chatRoomName;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +85,42 @@ public class OnRideActivity extends FragmentActivity implements OnMapReadyCallba
             // Get the current location of the device and set the position of the map.
             //getDeviceLocation();
         }
+
+        db = FirebaseFirestore.getInstance();
+        rider = (RequestedRides) getIntent().getExtras().getSerializable("requestedRide");
+        Log.d("demo",rider.toString());
+        chatRoomName = getIntent().getExtras().getString("chatRoomName");
+        Log.d("demo", chatRoomName);
+        //Adding snapshot listener to the riders and the drivers to go back to the chatroom activity
+
+        DocumentReference docDriverOnRef = db.collection("ChatRoomList")
+                .document(chatRoomName)
+                .collection("Requested Rides")
+                .document(rider.riderId);
+
+        docDriverOnRef.addSnapshotListener(OnRideActivity.this, new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException error) {
+                if (error != null) {
+                    Log.d("demo:", error+"");
+                    return;
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    RequestedRides updated =  snapshot.toObject(RequestedRides.class);
+                    // acceptedDrivers = new ArrayList<>();
+                    if(updated.rideStatus.equals("CANCELLED")){
+                        //Then either the rider or the driver has cancelled it. so finishing this intent.
+                        Toast.makeText(OnRideActivity.this, "Sorry.. This ride has been cancelled..", Toast.LENGTH_LONG).show();
+                        finish();
+                    }else if(updated.rideStatus == "COMPLETED"){
+                        //Please write code for what should be implemented if the ride status is completed.
+                    }
+                } else {
+                    System.out.print("Current data: null");
+                }
+            }
+        });
 
 
     }
@@ -248,6 +296,46 @@ public class OnRideActivity extends FragmentActivity implements OnMapReadyCallba
                 mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 200));
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+
+        AlertDialog.Builder builder1 = new AlertDialog.Builder(OnRideActivity.this);
+        builder1.setMessage("Are you sure you want to cancel this ride?");
+        builder1.setPositiveButton(
+                "Yes",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        db.collection("ChatRoomList").document(chatRoomName)
+                                .collection("Requested Rides")
+                                .document(rider.riderId)
+                                .update("rideStatus","CANCELLED")
+                                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        Toast.makeText(OnRideActivity.this, "Ride is cancelled. Going back to the chatroom activity", Toast.LENGTH_SHORT).show();
+                                        finish();
+                                    }
+                                }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(OnRideActivity.this, "Some error occured. Please try again", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                });
+
+        builder1.setNegativeButton(
+                "No",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alert11 = builder1.create();
+        alert11.show();
+
     }
 
 }
