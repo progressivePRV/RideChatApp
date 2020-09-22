@@ -56,7 +56,7 @@ public class SidebarActivity extends AppCompatActivity implements rvAdapterForUs
         DrawerLayout drawerLayout = findViewById(R.id.drawer_for_sidebar);
         NavigationView navigationView = findViewById(R.id.nav_host);
         configuration = new AppBarConfiguration.Builder(
-                R.id.nav_chatrooms,R.id.nav_users,R.id.nav_myprofile,R.id.nav_logout)
+                R.id.nav_chatrooms,R.id.nav_users,R.id.nav_myprofile,R.id.nav_previous_ride,R.id.nav_logout)
                 .setDrawerLayout(drawerLayout)
                 .build();
 

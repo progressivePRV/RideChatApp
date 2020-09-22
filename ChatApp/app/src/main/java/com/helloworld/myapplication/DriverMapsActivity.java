@@ -103,6 +103,12 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
     OkHttpClient client;
 
     @Override
+    protected void onResume() {
+        Log.d(cTAG, "onResume: in drivermapsActivity");
+        super.onResume();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
