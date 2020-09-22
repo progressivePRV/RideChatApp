@@ -55,4 +55,5 @@
     <string name="title_activity_on_ride">Map</string>
     <string name="title_activity_rider_on_ride">Map</string>
     <string name="cancelRide">Cancel Ride</string>
+    <string name="menu_priviousRide">Previous Rides</string>
 </resources>

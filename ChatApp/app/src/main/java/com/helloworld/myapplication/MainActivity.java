@@ -56,22 +56,6 @@ public class MainActivity extends AppCompatActivity {
         setTitle("Chat Room Login");
 
 
-        findViewById(R.id.driverButton).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent i =  new Intent(MainActivity.this,tempDriverMap.class);
-                startActivity(i);
-            }
-        });
-
-        findViewById(R.id.riderButton).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent i =  new Intent(MainActivity.this,tempRidersMap.class);
-                startActivity(i);
-            }
-        });
-
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
 

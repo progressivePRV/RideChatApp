@@ -68,7 +68,7 @@ import static android.provider.SettingsSlicesContract.KEY_LOCATION;
 
 public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    private static final String TAG = "okay";
+    private static final String cTAG = "okay";
     private GoogleMap mMap;
     private FirebaseFirestore db;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -191,7 +191,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                                             updateRides = snapshot.toObject(RequestedRides.class);
                                             //showProgressBarDialogWithHandler();
                                             if(updateRides.rideStatus.equals("ACCEPTED")){
-                                                Log.d(TAG, "onEvent: ride is Accepted");
+                                                Log.d(cTAG, "onEvent: ride is Accepted");
                                                 if(updateRides.driverId.equals(userProfile.uid)){
                                                     getLocationPermission();
                                                     try {
@@ -204,7 +204,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                                                                         // Set the map's camera position to the current location of the device.
                                                                         lastKnownLocation = task.getResult();
                                                                         if (lastKnownLocation != null) {
-                                                                            Log.d(TAG, "onComplete: last known location is not null");
+                                                                            Log.d(cTAG, "onComplete: last known location is not null");
                                                                             ArrayList<Double> driverLocation = new ArrayList<>();
                                                                             driverLocation.add(lastKnownLocation.getLatitude());
                                                                             driverLocation.add(lastKnownLocation.getLongitude());

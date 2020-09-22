@@ -29,8 +29,6 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name=".tempRidersMap"></activity>
-        <activity android:name=".tempDriverMap" />
         <activity android:name=".Driver_list" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.

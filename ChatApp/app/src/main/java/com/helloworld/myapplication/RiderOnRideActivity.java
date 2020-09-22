@@ -13,11 +13,16 @@ import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.util.Log;
 
+import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
 import android.widget.Toast;
 
 import android.widget.ImageView;
@@ -29,12 +34,14 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -50,9 +57,11 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 
 public class RiderOnRideActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    private static final String TAG = "okay";
     private GoogleMap mMap;
     private FirebaseFirestore db;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -74,6 +83,9 @@ public class RiderOnRideActivity extends FragmentActivity implements OnMapReadyC
     TextView riderName;
     TextView pickUpLocation;
     TextView dropOffLocation;
+
+    //variables for driver location update
+    Marker driverMarker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,34 +140,7 @@ public class RiderOnRideActivity extends FragmentActivity implements OnMapReadyC
         Log.d("demo", chatRoomName);
         //Adding snapshot listener to the riders and the drivers to go back to the chatroom activity
 
-        DocumentReference docRiderDriverRef = db.collection("ChatRoomList")
-                .document(chatRoomName)
-                .collection("Requested Rides")
-                .document(rider.riderId);
 
-        docRiderDriverRef.addSnapshotListener(RiderOnRideActivity.this, new EventListener<DocumentSnapshot>() {
-            @Override
-            public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException error) {
-                if (error != null) {
-                    Log.d("demo:", error+"");
-                    return;
-                }
-
-                if (snapshot != null && snapshot.exists()) {
-                    RequestedRides updated =  snapshot.toObject(RequestedRides.class);
-                    // acceptedDrivers = new ArrayList<>();
-                    if(updated.rideStatus.equals("CANCELLED")){
-                        //Then either the rider or the driver has cancelled it. so finishing this intent.
-                        Toast.makeText(RiderOnRideActivity.this, "This ride has been cancelled", Toast.LENGTH_LONG).show();
-                        finish();
-                    }else if(updated.rideStatus == "COMPLETED"){
-                        //Please write code for what should be implemented if the ride status is completed.
-                    }
-                } else {
-                    System.out.print("Current data: null");
-                }
-            }
-        });
 
     }
 
@@ -317,7 +302,7 @@ public class RiderOnRideActivity extends FragmentActivity implements OnMapReadyC
                 .title("Driver Location");
         latlngBuilder.include(markerDriver.getPosition());
         markerDriver.icon(bitmapDescriptorFromVector(R.drawable.car));
-        mMap.addMarker(markerDriver);
+        driverMarker = mMap.addMarker(markerDriver);
 
 //        Polyline polyline = mMap.addPolyline(polylineOptions);
 
@@ -328,6 +313,10 @@ public class RiderOnRideActivity extends FragmentActivity implements OnMapReadyC
             public void onMapLoaded() {
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 200));
                 mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 200));
+                //set animator for dirver location
+                SetAnimatoinForDriver(driverMarker);
+                // rider will start listnering fro update when map is fully loaded
+                RequestRideUpdateListner();
             }
         });
     }
@@ -389,6 +378,122 @@ public class RiderOnRideActivity extends FragmentActivity implements OnMapReadyC
                 });
         AlertDialog alert11 = builder1.create();
         alert11.show();
+    }
 
+    //below function are added for driver location updates
+
+    void RequestRideUpdateListner(){
+        DocumentReference docRiderDriverRef = db.collection("ChatRoomList")
+                .document(chatRoomName)
+                .collection("Requested Rides")
+                .document(rider.riderId);
+
+        docRiderDriverRef.addSnapshotListener(RiderOnRideActivity.this, new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException error) {
+                if (error != null) {
+                    Log.d("demo:", error+"");
+                    return;
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    RequestedRides updated =  snapshot.toObject(RequestedRides.class);
+                    // acceptedDrivers = new ArrayList<>();
+                    //as this listen for changes it will update driver location
+                    UpdatemarkerLocation(updated);
+                    Log.d(TAG, "onEvent: updates in ride request listened in RiderOnRide");
+                    if(updated.rideStatus.equals("CANCELLED")){
+                        //Then either the rider or the driver has cancelled it. so finishing this intent.
+                        Toast.makeText(RiderOnRideActivity.this, "This ride has been cancelled", Toast.LENGTH_LONG).show();
+                        finish();
+                    }else if(updated.rideStatus.equals("COMPLETED")){
+                        //Please write code for what should be implemented if the ride status is completed.
+                        Log.d(TAG, "onEvent: rider detected ride status completed");
+                        //on complete add data to previous ride
+                        showProgressBarDialog();
+                        AddDataToPreviousRide(updated);
+                        DeleteRequestRide(updated);
+                        finish();
+                    }
+                } else {
+                    System.out.print("Current data: null");
+                }
+            }
+        });
+    }
+
+    void SetAnimatoinForDriver(Marker driverMarker){
+        final Handler handler = new Handler();
+        final long start = SystemClock.uptimeMillis();
+        Projection proj = mMap.getProjection();
+        Point startPoint = proj.toScreenLocation(driverMarker.getPosition());
+        final LatLng startLatLng = proj.fromScreenLocation(startPoint);
+        final long duration = 20000;
+
+        final Interpolator interpolator = new LinearInterpolator();
+
+        double lng = startLatLng.longitude;  //request.driverLocation.get(1);
+        double lat = startLatLng.latitude;  //request.driverLocation.get(0);
+        driverMarker.setPosition(new LatLng(lat, lng));
+
+    }
+
+    void UpdatemarkerLocation(RequestedRides request){
+        double lng = request.driverLocation.get(1);
+        double lat = request.driverLocation.get(0);
+        driverMarker.setPosition(new LatLng(lat, lng));
+    }
+
+    public void showProgressBarDialog()
+    {
+        ProgressDialog progressDialog = new ProgressDialog(RiderOnRideActivity.this);
+        progressDialog.setMessage("Loading...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+    }
+
+    //adding function to add data in previous rides
+    void AddDataToPreviousRide(RequestedRides request){
+        PreviousRide ride = new PreviousRide();
+        ride.driverID = request.driverId;
+        ride.riderID = request.riderId;
+        ride.fromLocation = request.fromLocation;
+        ride.toLocation = request.toLocation;
+        ride.dateAndTime = new Date();
+        String docName = ride.riderID + ride.dateAndTime.getTime();
+
+        DocumentReference documentReference = db.collection("Users")
+                .document(ride.riderID)
+                .collection("Previous Rides")
+                .document(docName);
+        documentReference.set(ride).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(task.isSuccessful()){
+                    Toast.makeText(RiderOnRideActivity.this, "added this ride info to previous ride", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "onComplete: wrote into previous ride in riderOnrideActivty");
+                }else{
+                    Log.d(TAG, "onComplete: some error occured while adding data to previou ride in RiderOnride activity");
+                }
+            }
+        });
+    }
+    //adding function to delete request ride
+    void DeleteRequestRide(RequestedRides request){
+        db.collection("ChatRoomList")
+                .document(chatRoomName)
+                .collection("Requested Rides")
+                .document(request.riderId)
+                .delete()
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()){
+                            Log.d(TAG, "onComplete: request ride deleted succefully in rider on ride activtiy");
+                        }else{
+                            Log.d(TAG, "onComplete: error while deleting the request ride in rider on rid activity");
+                        }
+                    }
+                });
     }
 }

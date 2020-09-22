@@ -16,6 +16,10 @@
           android:id="@+id/nav_myprofile"
           android:title="@string/menu_myprofile" />
 
+        <item
+            android:id="@+id/nav_previous_ride"
+            android:title="@string/menu_priviousRide" />
+
       <item
           android:id="@+id/nav_logout"
           android:title="@string/menu_logout" />
