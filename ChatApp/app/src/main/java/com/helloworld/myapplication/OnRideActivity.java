@@ -511,7 +511,7 @@ public class OnRideActivity extends FragmentActivity implements OnMapReadyCallba
 
     public void showProgressBarDialog()
     {
-        ProgressDialog progressDialog = new ProgressDialog(OnRideActivity.this);
+        progressDialog = new ProgressDialog(OnRideActivity.this);
         progressDialog.setMessage("Loading...");
         progressDialog.setCancelable(false);
         progressDialog.show();
