@@ -50,6 +50,16 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firestore.v1.WriteResult;
+import com.google.maps.DirectionsApi;
+import com.google.maps.DirectionsApiRequest;
+import com.google.maps.GeoApiContext;
+import com.google.maps.PendingResult;
+import com.google.maps.model.DirectionsLeg;
+import com.google.maps.model.DirectionsResult;
+import com.google.maps.model.DirectionsRoute;
+import com.google.maps.model.DirectionsStep;
+import com.google.maps.model.EncodedPolyline;
+import com.squareup.okhttp.OkHttpClient;
 
 //import com.google.maps.DirectionsApi;
 //import com.google.maps.DirectionsApiRequest;
@@ -90,6 +100,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
     ImageView imageViewRider;
     ImageView imageViewpickUpLocation;
     ImageView imageViewDropOffLocation;
+    OkHttpClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -494,17 +505,122 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                 .position(toLatLng)
                 .title("Drop Location"));
 
-//        Polyline polyline = mMap.addPolyline(polylineOptions);
+        List<LatLng> path = new ArrayList();
 
-        final LatLngBounds latLngBounds = latlngBuilder.build();
+        GeoApiContext context = new GeoApiContext.Builder()
+                .apiKey(getString(R.string.api_key))
+                .build();
 
-        mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+        DirectionsApiRequest req=new DirectionsApiRequest(context);
+        req.origin(new com.google.maps.model.LatLng(requestedRides.pickUpLocation.get(0),requestedRides.pickUpLocation.get(1)));
+        req.destination(new com.google.maps.model.LatLng(requestedRides.dropOffLocation.get(0),requestedRides.dropOffLocation.get(1)));
+
+
+        req.setCallback(new PendingResult.Callback<DirectionsResult>() {
             @Override
-            public void onMapLoaded() {
-                mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds,200));
-                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds,200));
+            public void onResult(DirectionsResult result) {
+                DirectionsResult res = result;
+                Log.d("demo",res.routes+"");
+                if (res.routes != null && res.routes.length > 0) {
+                    DirectionsRoute route = res.routes[0];
+
+                    if (route.legs !=null) {
+                        for(int i=0; i<route.legs.length; i++) {
+                            DirectionsLeg leg = route.legs[i];
+                            if (leg.steps != null) {
+                                for (int j=0; j<leg.steps.length;j++){
+                                    DirectionsStep step = leg.steps[j];
+                                    if (step.steps != null && step.steps.length >0) {
+                                        for (int k=0; k<step.steps.length;k++){
+                                            DirectionsStep step1 = step.steps[k];
+                                            EncodedPolyline points1 = step1.polyline;
+                                            if (points1 != null) {
+                                                //Decode polyline and add points to list of route coordinates
+                                                List<com.google.maps.model.LatLng> coords1 = points1.decodePath();
+                                                for (com.google.maps.model.LatLng coord1 : coords1) {
+                                                    path.add(new LatLng(coord1.lat, coord1.lng));
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        EncodedPolyline points = step.polyline;
+                                        if (points != null) {
+                                            //Decode polyline and add points to list of route coordinates
+                                            List<com.google.maps.model.LatLng> coords = points.decodePath();
+                                            for (com.google.maps.model.LatLng coord : coords) {
+                                                path.add(new LatLng(coord.lat, coord.lng));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (path.size() > 0) {
+                            PolylineOptions opts = new PolylineOptions().addAll(path).color(Color.BLUE).width(10);
+                            mMap.addPolyline(opts);
+                        }
+
+                        final LatLngBounds latLngBounds = latlngBuilder.build();
+
+                        //List<LatLng> path = new ArrayList();
+
+                        mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+                            @Override
+                            public void onMapLoaded() {
+                                mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds,200));
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds,200));
+                            }
+                        });
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(Throwable e) {
+                Log.d("demo","Directions API failed"+e.getMessage());
             }
         });
+
+
+
+        //DirectionsApiRequest req = DirectionsApi.getDirections(context, requestedRides.pickUpLocation.get(0)+","+requestedRides.pickUpLocation.get(1), requestedRides.dropOffLocation.get(0)+","+requestedRides.dropOffLocation.get(1));
+//        try {
+//            DirectionsResult res = req.await();
+//
+//            //Loop through legs and steps to get encoded polylines of each step
+//
+//        } catch(Exception ex) {
+//            ex.printStackTrace();
+//            //Log.e("demo", ex.getLocalizedMessage());
+//        }
+
+        //Draw the polyline
+//        if (path.size() > 0) {
+//            PolylineOptions opts = new PolylineOptions().addAll(path).color(Color.BLUE).width(5);
+//            mMap.addPolyline(opts);
+//        }
+//
+//
+//
+//
+//
+//        final LatLngBounds latLngBounds = latlngBuilder.build();
+//
+//        //List<LatLng> path = new ArrayList();
+//
+//        mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+//            @Override
+//            public void onMapLoaded() {
+//                mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds,200));
+//                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds,200));
+//            }
+//        });
 
 
         //Define list to get all latlng for the route
