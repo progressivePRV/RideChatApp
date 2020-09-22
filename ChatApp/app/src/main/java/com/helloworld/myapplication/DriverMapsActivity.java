@@ -485,7 +485,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
         MarkerOptions marker = new MarkerOptions()
                 .position(fromLatLong)
                 .title("Pick Up Location");
-        marker.icon(bitmapDescriptorFromVectorPerson(R.drawable.ic_baseline_person_pin_circle_24));
+        marker.icon(bitmapDescriptorFromVectorPerson(R.drawable.personrider));
         mMap.addMarker(marker);
 
         LatLng toLatLng = new LatLng(requestedRides.dropOffLocation.get(0), requestedRides.dropOffLocation.get(1));

@@ -295,7 +295,7 @@ public class OnRideActivity extends FragmentActivity implements OnMapReadyCallba
                 .position(fromLatLong)
                 .title("Pick Up Location");
         latlngBuilder.include(marker.getPosition());
-        marker.icon(bitmapDescriptorFromVectorPerson(R.drawable.ic_baseline_person_pin_circle_24));
+        marker.icon(bitmapDescriptorFromVectorPerson(R.drawable.personrider));
         mMap.addMarker(marker);
 
         LatLng toLatLng = new LatLng(requestedRides.dropOffLocation.get(0), requestedRides.dropOffLocation.get(1));
