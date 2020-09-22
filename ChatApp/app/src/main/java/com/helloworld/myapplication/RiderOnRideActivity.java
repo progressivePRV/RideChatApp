@@ -17,7 +17,12 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+
 import android.widget.Toast;
+
+import android.widget.ImageView;
+import android.widget.TextView;
+
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -59,8 +64,16 @@ public class RiderOnRideActivity extends FragmentActivity implements OnMapReadyC
     private CameraPosition cameraPosition;
     private static final int DEFAULT_ZOOM = 15;
     private ProgressDialog progressDialog;
+
     private RequestedRides rider;
     private String chatRoomName;
+
+    ImageView riderImage;
+    ImageView pickUpLocationImage;
+    ImageView dropOffLocationImage;
+    TextView riderName;
+    TextView pickUpLocation;
+    TextView dropOffLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +101,24 @@ public class RiderOnRideActivity extends FragmentActivity implements OnMapReadyC
 
             // Get the current location of the device and set the position of the map.
             //getDeviceLocation();
+
+            riderImage=findViewById(R.id.riderImage);
+            pickUpLocationImage=findViewById(R.id.pcikUpImage);
+            dropOffLocationImage=findViewById(R.id.dropOffImage);
+
+            riderName=findViewById(R.id.textViewDriverName);
+            pickUpLocation=findViewById(R.id.textViewPickUpName);
+            dropOffLocation=findViewById(R.id.textViewDropOffName);
+
+            riderImage.setImageResource(R.drawable.vehicle);
+            pickUpLocationImage.setImageResource(R.drawable.rec);
+            dropOffLocationImage.setImageResource(R.drawable.placeholder);
+
+            RequestedRides requestedRides = (RequestedRides) getIntent().getExtras().get("requestedRide");
+
+            riderName.setText(requestedRides.driverName);
+            pickUpLocation.setText(requestedRides.fromLocation);
+            dropOffLocation.setText(requestedRides.toLocation);
         }
 
         db = FirebaseFirestore.getInstance();

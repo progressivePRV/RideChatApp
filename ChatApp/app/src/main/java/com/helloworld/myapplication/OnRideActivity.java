@@ -17,7 +17,12 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+
 import android.widget.Toast;
+
+import android.widget.ImageView;
+import android.widget.TextView;
+
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -53,9 +58,15 @@ public class OnRideActivity extends FragmentActivity implements OnMapReadyCallba
     private CameraPosition cameraPosition;
     private static final int DEFAULT_ZOOM = 15;
     private ProgressDialog progressDialog;
+
     private RequestedRides rider;
     private String chatRoomName;
-
+    ImageView riderImage;
+    ImageView pickUpLocationImage;
+    ImageView dropOffLocationImage;
+    TextView riderName;
+    TextView pickUpLocation;
+    TextView dropOffLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +92,24 @@ public class OnRideActivity extends FragmentActivity implements OnMapReadyCallba
 
             // Turn on the My Location layer and the related control on the map.
             updateLocationUI();
+
+            riderImage=findViewById(R.id.riderImage);
+            pickUpLocationImage=findViewById(R.id.pcikUpImage);
+            dropOffLocationImage=findViewById(R.id.dropOffImage);
+
+            riderName=findViewById(R.id.textViewDriverName);
+            pickUpLocation=findViewById(R.id.textViewPickUpName);
+            dropOffLocation=findViewById(R.id.textViewDropOffName);
+
+            riderImage.setImageResource(R.drawable.profileinfouser);
+            pickUpLocationImage.setImageResource(R.drawable.rec);
+            dropOffLocationImage.setImageResource(R.drawable.placeholder);
+
+            RequestedRides requestedRides = (RequestedRides) getIntent().getExtras().get("requestedRide");
+
+            riderName.setText(requestedRides.riderName);
+            pickUpLocation.setText(requestedRides.fromLocation);
+            dropOffLocation.setText(requestedRides.toLocation);
 
             // Get the current location of the device and set the position of the map.
             //getDeviceLocation();

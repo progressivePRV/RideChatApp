@@ -10,98 +10,146 @@
     <include
         android:id="@+id/include2"
         layout="@layout/toolbar_for_sidebar"
-        tools:layout_editor_absoluteX="-16dp"
-        tools:layout_editor_absoluteY="0dp">
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="16dp">
 
     </include>
 
-    <fragment
-        android:id="@+id/driverMap"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
-        android:layout_width="412dp"
-        android:layout_height="411dp"
-        android:layout_marginTop="100dp"
-        android:layout_marginBottom="100dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/view2"
+        android:layout_width="0dp"
+        android:layout_height="365dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginRight="20dp"
+        android:elevation="25dp"
+        app:cardUseCompatPadding="true"
+        app:cardCornerRadius="20dp"
+        app:layout_constraintBottom_toTopOf="@+id/view15"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:context=".DriverMapsActivity" />
+        app:layout_constraintTop_toBottomOf="@+id/toLocation">
 
-    <TextView
-        android:id="@+id/textViewRiderName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="72dp"
-        android:text="@string/Riders_Name"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/include2" />
+        <fragment
+            android:id="@+id/driverMap"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintBottom_toTopOf="@+id/view15"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/toLocation"
+            app:layout_constraintVertical_bias="0.0"
+            tools:context=".DriverMapsActivity" />
+
+    </androidx.cardview.widget.CardView>
 
     <Button
         android:id="@+id/buttonDriverNo"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:background="#f44336"
         android:text="@string/confirmRideNo"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginLeft="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/view15"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/driverMap" />
+        app:layout_constraintTop_toBottomOf="@+id/view2" />
 
     <Button
         android:id="@+id/buttonDriverYes"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:background="#4CAF50"
         android:text="@string/confirmRideYes"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginRight="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/driverMap" />
-
-    <TextView
-        android:id="@+id/textViewFromLocation"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="9dp"
-        android:text="@string/fromLabel"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewRiderName" />
-
-    <TextView
-        android:id="@+id/textViewToLocation"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="9dp"
-        android:text="@string/tolabel"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewFromLocation" />
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/view15"
+        app:layout_constraintTop_toBottomOf="@+id/view2"
+        app:layout_constraintVertical_bias="0.505" />
 
     <TextView
         android:id="@+id/riderName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="36dp"
-        android:layout_marginTop="72dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="76dp"
         android:text="TextView"
-        app:layout_constraintStart_toEndOf="@+id/textViewRiderName"
+        android:textColor="#000000"
+        android:textSize="15sp"
+        app:layout_constraintStart_toEndOf="@+id/imageViewRider"
         app:layout_constraintTop_toTopOf="@+id/include2" />
 
     <TextView
         android:id="@+id/fromLocation"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="80dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="20dp"
         android:text="TextView"
-        app:layout_constraintStart_toEndOf="@+id/textViewFromLocation"
+        android:textColor="#000000"
+        android:textSize="15sp"
+        app:layout_constraintStart_toEndOf="@+id/imageViewstartLocation"
         app:layout_constraintTop_toBottomOf="@+id/riderName" />
 
     <TextView
         android:id="@+id/toLocation"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="100dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="24dp"
         android:text="TextView"
-        app:layout_constraintStart_toEndOf="@+id/textViewToLocation"
+        android:textColor="#000000"
+        android:textSize="15sp"
+        app:layout_constraintStart_toEndOf="@+id/imageViewdropOffLocation"
         app:layout_constraintTop_toBottomOf="@+id/fromLocation" />
+
+    <View
+        android:id="@+id/view15"
+        android:layout_width="10dp"
+        android:layout_height="120dp"
+        app:layout_constraintBottom_toBottomOf="@+id/include2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/include2"
+        app:layout_constraintVertical_bias="0.974" />
+
+    <ImageView
+        android:id="@+id/imageViewRider"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_marginTop="68dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginLeft="30dp"
+        app:srcCompat="@drawable/profileinfouser" />
+
+    <ImageView
+        android:id="@+id/imageViewstartLocation"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginTop="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageViewRider"
+        app:srcCompat="@drawable/rec" />
+
+    <ImageView
+        android:id="@+id/imageViewdropOffLocation"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginTop="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageViewstartLocation"
+        app:srcCompat="@drawable/placeholder" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -85,6 +86,9 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
     TextView riderName;
     TextView toLocation;
     TextView fromLocation;
+    ImageView imageViewRider;
+    ImageView imageViewpickUpLocation;
+    ImageView imageViewDropOffLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +100,15 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
         }
 
         setContentView(R.layout.activity_driver_maps);
+
+        imageViewRider = findViewById(R.id.imageViewRider);
+        imageViewpickUpLocation = findViewById(R.id.imageViewstartLocation);
+        imageViewDropOffLocation = findViewById(R.id.imageViewdropOffLocation);
+
+        imageViewRider.setImageResource(R.drawable.profileinfouser);
+        imageViewpickUpLocation.setImageResource(R.drawable.rec);
+        imageViewDropOffLocation.setImageResource(R.drawable.placeholder);
+
         db = FirebaseFirestore.getInstance();
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
