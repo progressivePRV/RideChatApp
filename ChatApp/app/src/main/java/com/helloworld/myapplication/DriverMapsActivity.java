@@ -68,6 +68,7 @@ import static android.provider.SettingsSlicesContract.KEY_LOCATION;
 
 public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    private static final String TAG = "okay";
     private GoogleMap mMap;
     private FirebaseFirestore db;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -190,10 +191,11 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                                             updateRides = snapshot.toObject(RequestedRides.class);
                                             //showProgressBarDialogWithHandler();
                                             if(updateRides.rideStatus.equals("ACCEPTED")){
+                                                Log.d(TAG, "onEvent: ride is Accepted");
                                                 if(updateRides.driverId.equals(userProfile.uid)){
                                                     getLocationPermission();
                                                     try {
-                                                        if (locationPermissionGranted) {
+                                                       // if (locationPermissionGranted) {
                                                             Task<Location> locationResult = fusedLocationProviderClient.getLastLocation();
                                                             locationResult.addOnCompleteListener(DriverMapsActivity.this, new OnCompleteListener<Location>() {
                                                                 @Override
@@ -202,7 +204,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                                                                         // Set the map's camera position to the current location of the device.
                                                                         lastKnownLocation = task.getResult();
                                                                         if (lastKnownLocation != null) {
-
+                                                                            Log.d(TAG, "onComplete: last known location is not null");
                                                                             ArrayList<Double> driverLocation = new ArrayList<>();
                                                                             driverLocation.add(lastKnownLocation.getLatitude());
                                                                             driverLocation.add(lastKnownLocation.getLongitude());
@@ -240,12 +242,12 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                                                                     }
                                                                 }
                                                             });
-                                                        }
-                                                        else {
-                                                            progressDialog.dismiss();
-                                                            Toast.makeText(DriverMapsActivity.this, "No permission to access maps", Toast.LENGTH_SHORT).show();
-                                                            finish();
-                                                        }
+//                                                        }
+//                                                        else {
+//                                                            progressDialog.dismiss();
+//                                                            Toast.makeText(DriverMapsActivity.this, "No permission to access maps", Toast.LENGTH_SHORT).show();
+//                                                            finish();
+//                                                        }
                                                     } catch (SecurityException e) {
                                                         progressDialog.dismiss();
                                                         Log.e("Exception: %s", e.getMessage(), e);
