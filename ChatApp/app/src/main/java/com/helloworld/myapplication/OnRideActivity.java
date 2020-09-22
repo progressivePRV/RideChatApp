@@ -439,7 +439,7 @@ public class OnRideActivity extends FragmentActivity implements OnMapReadyCallba
         DocumentReference rideRequeat = db.collection("ChatRoomList")
                 .document(chatRoomName)
                 .collection("Requested Rides")
-                .document("jBWHYtvax5RGTvPmDM1I0VXdjsx2");
+                .document(rider.riderId);
 
         rideRequeat.update("driverLocation",driverLatLngArrList)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -458,7 +458,7 @@ public class OnRideActivity extends FragmentActivity implements OnMapReadyCallba
         DocumentReference rideRequeat = db.collection("ChatRoomList")
                 .document(chatRoomName)
                 .collection("Requested Rides")
-                .document("jBWHYtvax5RGTvPmDM1I0VXdjsx2");
+                .document(rider.riderId);
 
         rideRequeat.update("rideStatus","COMPLETED")
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -493,12 +493,20 @@ public class OnRideActivity extends FragmentActivity implements OnMapReadyCallba
                 if(task.isSuccessful()){
                     Toast.makeText(OnRideActivity.this, "added this ride info to previous ride", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "onComplete: wrote into previous ride in OnrideActivty");
+                    hideProgressBarDialog();
+                    finish();
                 }else{
                     Log.d(TAG, "onComplete: some error occured while addind data to previou ride in  ONRide activity");
                 }
-                finish();
+
             }
         });
+    }
+
+    //for hiding the progress dialog
+    public void hideProgressBarDialog()
+    {
+        progressDialog.dismiss();
     }
 
     public void showProgressBarDialog()
