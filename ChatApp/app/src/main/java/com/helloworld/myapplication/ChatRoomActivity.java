@@ -92,7 +92,7 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
     protected void onResume() {
         Log.d(TAG, "onResume: in chatroomActivity");
         super.onResume();
-        addingListenerRequestedRide("onResume");
+        addingListenerRequestedRide();
     }
 
     @Override
@@ -293,12 +293,12 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
 
         //Adding Snapshot listener to the Requested Rides User Document for Drivers
         //Hope it works!!
-        addingListenerRequestedRide("onCreate");
+        //addingListenerRequestedRide("onCreate");
 
 
     }
 
-    public void addingListenerRequestedRide(String task){
+    public void addingListenerRequestedRide(){
 
         //Adding snapshot to the requested rides in the chatroom
         db.collection("ChatRoomList")
@@ -319,14 +319,7 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
                                     Toast.makeText(ChatRoomActivity.this, "It comes to addded", Toast.LENGTH_SHORT).show();
                                     RequestedRides added = dc.getDocument().toObject(RequestedRides.class);
                                     mAuth = FirebaseAuth.getInstance();
-                                    boolean condition=false;
-                                    if(task.equals("onCreate")){
-                                        condition=added.rideStatus.equals("REQUESTED");
-                                    }
-                                    else if(task.equals("onResume")){
-                                        condition=added.rideStatus.equals("REQUESTED") && (added.rejectedRides!=null && !added.rejectedRides.contains(mAuth.getCurrentUser().getUid()));
-                                    }
-                                    if(condition){
+                                    if(added.rideStatus.equals("REQUESTED") && (added.rejectedRides!=null && !added.rejectedRides.contains(mAuth.getCurrentUser().getUid()))){
                                         Intent intent = new Intent(ChatRoomActivity.this, DriverMapsActivity.class);
                                         intent.putExtra("chatRoomName",chatRoomName);
                                         intent.putExtra("requestedRides", added);

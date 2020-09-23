@@ -310,7 +310,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                     addRejectedRide();
                 }
             }
-        },30000);
+        },20000);
 
         findViewById(R.id.buttonDriverNo).setOnClickListener(new View.OnClickListener() {
             @Override
