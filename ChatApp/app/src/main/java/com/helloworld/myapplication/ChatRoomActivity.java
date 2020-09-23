@@ -316,7 +316,7 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
                         for (DocumentChange dc : snapshots.getDocumentChanges()) {
                             switch (dc.getType()) {
                                 case ADDED:
-                                    Toast.makeText(ChatRoomActivity.this, "It comes to addded", Toast.LENGTH_SHORT).show();
+                                    //Toast.makeText(ChatRoomActivity.this, "It comes to addded", Toast.LENGTH_SHORT).show();
                                     RequestedRides added = dc.getDocument().toObject(RequestedRides.class);
                                     mAuth = FirebaseAuth.getInstance();
                                     if(added.rideStatus.equals("REQUESTED") && (added.rejectedRides!=null && !added.rejectedRides.contains(mAuth.getCurrentUser().getUid()))){
@@ -328,10 +328,10 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
                                     }
                                     break;
                                 case MODIFIED:
-                                    Toast.makeText(ChatRoomActivity.this, "It comes to modified", Toast.LENGTH_SHORT).show();
+                                    //Toast.makeText(ChatRoomActivity.this, "It comes to modified", Toast.LENGTH_SHORT).show();
                                     break;
                                 case REMOVED:
-                                    Toast.makeText(ChatRoomActivity.this, "It comes to deleted", Toast.LENGTH_SHORT).show();
+                                    //Toast.makeText(ChatRoomActivity.this, "It comes to deleted", Toast.LENGTH_SHORT).show();
                                     break;
                             }
                         }

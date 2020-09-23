@@ -42,6 +42,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.auth.User;
 
@@ -69,6 +70,7 @@ public class AskForARide extends AppCompatActivity {
     ImageView fromImage;
     ImageView toImage;
     ImageView moreImage;
+    int cnt;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,7 +125,7 @@ public class AskForARide extends AppCompatActivity {
                               @Override
                               public void onComplete(@NonNull Task<Void> task) {
                                   showProgressBarDialogWithHandler();
-                                  Toast.makeText(AskForARide.this, "Lets see if it stores without any problem!", Toast.LENGTH_SHORT).show();
+                                  Toast.makeText(AskForARide.this, "Fetching drivers", Toast.LENGTH_SHORT).show();
                               }
                           }).addOnFailureListener(new OnFailureListener() {
                       @Override
@@ -230,6 +232,7 @@ public class AskForARide extends AppCompatActivity {
     @Override
     protected void onPostResume() {
         super.onPostResume();
+        //cnt=0;
         //setting snapshot listener to the drivers accepted list and adding it in a list to display it in the alert box
         DocumentReference docRef = db.collection("ChatRoomList")
                 .document(chatRoomName)
@@ -239,6 +242,7 @@ public class AskForARide extends AppCompatActivity {
         docRef.addSnapshotListener(AskForARide.this, new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException error) {
+                //cnt++;
                 if (error != null) {
                     Log.d("demo:", error+"");
                     return;

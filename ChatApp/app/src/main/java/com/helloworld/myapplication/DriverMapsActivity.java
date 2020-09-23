@@ -190,7 +190,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                     @Override
                     public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException error) {
 
-                        Toast.makeText(DriverMapsActivity.this, snapshot +" "+ error, Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(DriverMapsActivity.this, snapshot +" "+ error, Toast.LENGTH_SHORT).show();
                         Log.d("demo", snapshot +" "+ error);
                         if (error != null) {
                             progressDialog.dismiss();
@@ -325,6 +325,13 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
 
     }
 
+    @Override
+    public void onBackPressed() {
+        //super.onBackPressed();
+        Toast.makeText(DriverMapsActivity.this, "Ride rejected", Toast.LENGTH_SHORT).show();
+        addRejectedRide();
+    }
+
     public void addRejectedRide(){
 
         DocumentReference rejectReference =  db.collection("ChatRoomList")
@@ -353,7 +360,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == 4025 && resultCode == 5025){
-            Toast.makeText(this, "entering here", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "entering here", Toast.LENGTH_SHORT).show();
             DriverMapsActivity.this.finish();
         }
     }
