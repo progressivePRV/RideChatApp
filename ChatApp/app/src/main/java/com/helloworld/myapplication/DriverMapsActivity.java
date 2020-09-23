@@ -101,6 +101,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
     ImageView imageViewpickUpLocation;
     ImageView imageViewDropOffLocation;
     OkHttpClient client;
+    RequestedRides requestedRides;
 
     @Override
     protected void onResume() {
@@ -138,7 +139,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
 
         isYesClicked=false;
 
-        final RequestedRides requestedRides = (RequestedRides) getIntent().getExtras().getSerializable("requestedRides");
+        requestedRides = (RequestedRides) getIntent().getExtras().getSerializable("requestedRides");
         riderName=findViewById(R.id.riderName);
         toLocation=findViewById(R.id.toLocation);
         fromLocation=findViewById(R.id.fromLocation);
@@ -305,7 +306,8 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
             public void run() {
                 if(!isYesClicked){
                     Toast.makeText(DriverMapsActivity.this, "Ride rejected", Toast.LENGTH_SHORT).show();
-                    finish();
+                    //DriverMapsActivity.this.finish();
+                    addRejectedRide();
                 }
             }
         },30000);
@@ -315,8 +317,32 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
             public void onClick(View v) {
                 if(!isYesClicked){
                     Toast.makeText(DriverMapsActivity.this, "Ride rejected", Toast.LENGTH_SHORT).show();
-                    finish();
+                    //finish();
+                    addRejectedRide();
                 }
+            }
+        });
+
+    }
+
+    public void addRejectedRide(){
+
+        DocumentReference rejectReference =  db.collection("ChatRoomList")
+                .document(chatRoomName)
+                .collection("Requested Rides")
+                .document(requestedRides.riderId);
+
+        rejectReference.update("rejectedRides",
+                FieldValue.arrayUnion(userProfile.uid))
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        finish();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(DriverMapsActivity.this, "Some error occured. Please try again", Toast.LENGTH_SHORT).show();
             }
         });
 
