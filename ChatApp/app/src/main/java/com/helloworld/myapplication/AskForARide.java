@@ -228,6 +228,42 @@ public class AskForARide extends AppCompatActivity {
     }
 
     @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        //setting snapshot listener to the drivers accepted list and adding it in a list to display it in the alert box
+        DocumentReference docRef = db.collection("ChatRoomList")
+                .document(chatRoomName)
+                .collection("Requested Rides")
+                .document(user.uid);
+
+        docRef.addSnapshotListener(AskForARide.this, new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException error) {
+                if (error != null) {
+                    Log.d("demo:", error+"");
+                    return;
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    updateRideDetails = snapshot.toObject(RequestedRides.class);
+//                    Toast.makeText(AskForARide.this, "Fetching driver location", Toast.LENGTH_SHORT).show();
+                    if(updateRideDetails.driverLocation!=null && !updateRideDetails.driverLocation.isEmpty()){
+                        Intent intent = new Intent(AskForARide.this,RiderOnRideActivity.class);
+                        intent.putExtra("chatRoomName",chatRoomName);
+                        intent.putExtra("requestedRide",updateRideDetails);
+                        progressDialog.hide();
+                        startActivity(intent);
+                        finish();
+                    }
+                } else {
+                    System.out.print("Current data: null");
+                }
+            }
+        });
+
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         //here the user has cancelled the ride even after seeing the driver list
@@ -257,25 +293,6 @@ public class AskForARide extends AppCompatActivity {
                                 progressDialog.setMessage("Fetching driver location...");
                                 progressDialog.setCancelable(false);
                                 progressDialog.show();
-                                db.collection("ChatRoomList")
-                                        .document(getIntent().getExtras().getString("chatRoomName"))
-                                        .collection("Requested Rides")
-                                        .document(updateRideDetails.riderId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                        Intent intent = new Intent(AskForARide.this,RiderOnRideActivity.class);
-                                        intent.putExtra("chatRoomName",chatRoomName);
-                                        intent.putExtra("requestedRide",updateRideDetails);
-                                        progressDialog.hide();
-                                        startActivity(intent);
-                                        finish();
-                                    }
-                                }).addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Toast.makeText(AskForARide.this, "Sorry Some error happened!", Toast.LENGTH_SHORT).show();
-                                    }
-                                });
                             }
                             else {
                                 Toast.makeText(AskForARide.this, "Some issue occured in ride", Toast.LENGTH_SHORT).show();

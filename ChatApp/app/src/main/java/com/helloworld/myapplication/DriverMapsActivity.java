@@ -157,6 +157,11 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
         // Get the current location of the device and set the position of the map.
         getDeviceLocation();
 
+        final DocumentReference docRefDriver = db.collection("ChatRoomList")
+                .document(chatRoomName)
+                .collection("Requested Rides")
+                .document(requestedRides.riderId);
+
         //if the driver says yes
         findViewById(R.id.buttonDriverYes).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -180,13 +185,99 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                         .collection("Requested Rides")
                         .document(requestedRides.riderId);
 
+                docRefDriver.addSnapshotListener(DriverMapsActivity.this,new EventListener<DocumentSnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException error) {
+
+                        Toast.makeText(DriverMapsActivity.this, snapshot +" "+ error, Toast.LENGTH_SHORT).show();
+                        Log.d("demo", snapshot +" "+ error);
+                        if (error != null) {
+                            progressDialog.dismiss();
+                            Log.d("demo:", error+"");
+                            Toast.makeText(DriverMapsActivity.this, "Some error occured - Drviermapsactivity ", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        if (snapshot != null && snapshot.exists()) {
+                            updateRides = snapshot.toObject(RequestedRides.class);
+                            //showProgressBarDialogWithHandler();
+                            if(updateRides.rideStatus.equals("ACCEPTED")){
+                                Log.d(cTAG, "onEvent: ride is Accepted");
+                                if(updateRides.driverId.equals(userProfile.uid) && (updateRides.driverLocation == null || updateRides.driverLocation.isEmpty())){
+                                    getLocationPermission();
+                                    try {
+                                        // if (locationPermissionGranted) {
+                                        Task<Location> locationResult = fusedLocationProviderClient.getLastLocation();
+                                        locationResult.addOnCompleteListener(DriverMapsActivity.this, new OnCompleteListener<Location>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Location> task) {
+                                                if (task.isSuccessful()) {
+                                                    // Set the map's camera position to the current location of the device.
+                                                    lastKnownLocation = task.getResult();
+                                                    if (lastKnownLocation != null) {
+                                                        Log.d(cTAG, "onComplete: last known location is not null");
+                                                        ArrayList<Double> driverLocation = new ArrayList<>();
+                                                        driverLocation.add(lastKnownLocation.getLatitude());
+                                                        driverLocation.add(lastKnownLocation.getLongitude());
+
+                                                        updateRides.setDriverLocation(driverLocation);
+                                                        //updateRides.setDrivers(null);
+
+                                                        docRefDriver.set(updateRides);
+
+                                                    }
+                                                } else {
+                                                    progressDialog.dismiss();
+                                                    Log.d("demo", "Current location is null. Using defaults.");
+                                                    Log.e("demo", "Exception: %s", task.getException());
+                                                    mMap.getUiSettings().setMyLocationButtonEnabled(false);
+                                                }
+                                            }
+                                        });
+//                                                        }
+//                                                        else {
+//                                                            progressDialog.dismiss();
+//                                                            Toast.makeText(DriverMapsActivity.this, "No permission to access maps", Toast.LENGTH_SHORT).show();
+//                                                            finish();
+//                                                        }
+                                    } catch (SecurityException e) {
+                                        progressDialog.dismiss();
+                                        Log.e("Exception: %s", e.getMessage(), e);
+                                    }
+                                }else if(updateRides.driverId.equals(userProfile.uid) && updateRides.driverLocation != null && !updateRides.driverLocation.isEmpty()){
+                                    progressDialog.dismiss();
+                                    Toast.makeText(DriverMapsActivity.this, "You have been selected for this ride.. Wait the intent will come soon", Toast.LENGTH_SHORT).show();
+                                    Intent intent= new Intent(DriverMapsActivity.this,OnRideActivity.class);
+                                    intent.putExtra("requestedRide",updateRides);
+                                    intent.putExtra("chatRoomName",chatRoomName);
+                                    startActivity(intent);
+                                    finish();
+                                }else{
+                                    progressDialog.dismiss();
+                                    Toast.makeText(DriverMapsActivity.this, "Sorry, the ride is not available", Toast.LENGTH_SHORT).show();
+                                    finish();
+                                }
+                            }else if(updateRides.rideStatus.equals("CANCELLED")){
+                                progressDialog.dismiss();
+                                Toast.makeText(DriverMapsActivity.this, "Sorry! Rider has cancelled this ride", Toast.LENGTH_SHORT).show();
+                                finish();
+                            }
+
+
+                        } else {
+                            Toast.makeText(DriverMapsActivity.this, "Requested ride is empty - Drivermapsactivity", Toast.LENGTH_SHORT).show();
+                            progressDialog.dismiss();
+                            finish();
+                        }
+                    }
+                });
+
 // Atomically add a new region to the "regions" array field.
                        driverReference.update("drivers",
                         FieldValue.arrayUnion(userProfile))
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
-                                //showProgressBarDialogWithHandler();
 
                                 //Toast.makeText(DriverMapsActivity.this, "Lets see if it stores without any problem!", Toast.LENGTH_SHORT).show();
 
@@ -195,98 +286,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                                         .collection("Requested Rides")
                                         .document(requestedRides.riderId);
 
-                                docRefDriver.addSnapshotListener(DriverMapsActivity.this,new EventListener<DocumentSnapshot>() {
-                                    @Override
-                                    public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException error) {
-                                        if (error != null) {
-                                            progressDialog.dismiss();
-                                            Log.d("demo:", error+"");
-                                            return;
-                                        }
 
-                                        if (snapshot != null && snapshot.exists()) {
-                                            updateRides = snapshot.toObject(RequestedRides.class);
-                                            //showProgressBarDialogWithHandler();
-                                            if(updateRides.rideStatus.equals("ACCEPTED")){
-                                                Log.d(cTAG, "onEvent: ride is Accepted");
-                                                if(updateRides.driverId.equals(userProfile.uid)){
-                                                    getLocationPermission();
-                                                    try {
-                                                       // if (locationPermissionGranted) {
-                                                            Task<Location> locationResult = fusedLocationProviderClient.getLastLocation();
-                                                            locationResult.addOnCompleteListener(DriverMapsActivity.this, new OnCompleteListener<Location>() {
-                                                                @Override
-                                                                public void onComplete(@NonNull Task<Location> task) {
-                                                                    if (task.isSuccessful()) {
-                                                                        // Set the map's camera position to the current location of the device.
-                                                                        lastKnownLocation = task.getResult();
-                                                                        if (lastKnownLocation != null) {
-                                                                            Log.d(cTAG, "onComplete: last known location is not null");
-                                                                            ArrayList<Double> driverLocation = new ArrayList<>();
-                                                                            driverLocation.add(lastKnownLocation.getLatitude());
-                                                                            driverLocation.add(lastKnownLocation.getLongitude());
-
-                                                                            updateRides.setDriverLocation(driverLocation);
-                                                                            //updateRides.setDrivers(null);
-
-                                                                            docRefDriver.set(updateRides).addOnCompleteListener(DriverMapsActivity.this, new OnCompleteListener<Void>() {
-                                                                                @Override
-                                                                                public void onComplete(@NonNull Task<Void> task) {
-                                                                                    if(task.isSuccessful()){
-                                                                                        progressDialog.dismiss();
-                                                                                        Toast.makeText(DriverMapsActivity.this, "You have been selected for this ride.. Wait the intent will come soon", Toast.LENGTH_SHORT).show();
-                                                                                        Intent intent= new Intent(DriverMapsActivity.this,OnRideActivity.class);
-                                                                                        intent.putExtra("requestedRide",updateRides);
-                                                                                        intent.putExtra("chatRoomName",chatRoomName);
-                                                                                        //intent.putExtra("driverLatitude",lastKnownLocation.getLatitude());
-                                                                                        //intent.putExtra("driverLongitude",lastKnownLocation.getLongitude());
-                                                                                        startActivity(intent);
-                                                                                        finish();
-                                                                                    }
-                                                                                    else{
-                                                                                        progressDialog.dismiss();
-                                                                                        Toast.makeText(DriverMapsActivity.this, "There was some problem with the ride. Ride cancled", Toast.LENGTH_SHORT).show();
-                                                                                    }
-                                                                                }
-                                                                            });
-
-                                                                        }
-                                                                    } else {
-                                                                        progressDialog.dismiss();
-                                                                        Log.d("demo", "Current location is null. Using defaults.");
-                                                                        Log.e("demo", "Exception: %s", task.getException());
-                                                                        mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                                                                    }
-                                                                }
-                                                            });
-//                                                        }
-//                                                        else {
-//                                                            progressDialog.dismiss();
-//                                                            Toast.makeText(DriverMapsActivity.this, "No permission to access maps", Toast.LENGTH_SHORT).show();
-//                                                            finish();
-//                                                        }
-                                                    } catch (SecurityException e) {
-                                                        progressDialog.dismiss();
-                                                        Log.e("Exception: %s", e.getMessage(), e);
-                                                    }
-                                                }else{
-                                                    progressDialog.dismiss();
-                                                    Toast.makeText(DriverMapsActivity.this, "Sorry, the ride is not available", Toast.LENGTH_SHORT).show();
-                                                    finish();
-                                                }
-                                            }else if(updateRides.rideStatus.equals("CANCELLED")){
-                                                Toast.makeText(DriverMapsActivity.this, "Sorry! Rider has cancelled this ride", Toast.LENGTH_SHORT).show();
-                                                finish();
-                                            }
-
-
-                                        } else {
-                                            System.out.print("Current data: null");
-                                            progressDialog.dismiss();
-                                            finish();
-                                        }
-                                    }
-                                });
                             }
                         }).addOnFailureListener(new OnFailureListener() {
                     @Override
@@ -320,55 +320,8 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
             }
         });
 
-        //Adding listener if we see that the driver is picked
-        //setting snapshot listener to the drivers accepted list and adding it in a list to display it in the alert box
-//        DocumentReference docRefDriver = db.collection("ChatRoomList")
-//                .document(chatRoomName)
-//                .collection("Requested Rides")
-//                .document(userProfile.uid);
-//
-//        docRefDriver.addSnapshotListener(DriverMapsActivity.this, new EventListener<DocumentSnapshot>() {
-//            @Override
-//            public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException error) {
-//                if (error != null) {
-//                    Log.d("demo:", error+"");
-//                    return;
-//                }
-//
-//                if (snapshot != null && snapshot.exists()) {
-//                    updateRides = snapshot.toObject(RequestedRides.class);
-//
-//                } else {
-//                    System.out.print("Current data: null");
-//                }
-//            }
-//        });
     }
 
-    //for showing the progress dialog
-    public void showProgressBarDialogWithHandler()
-    {
-//        progressDialog = new ProgressDialog(DriverMapsActivity.this);
-//        progressDialog.setMessage("Fetching your ride details");
-//        progressDialog.setCancelable(false);
-//        progressDialog.show();
-
-        //Handler is set for 30 seconds for the driver to accept the invitation
-        //Handler handler = new Handler();
-//        handler.postDelayed(new Runnable() {
-//            public void run() {
-//                progressDialog.dismiss();
-                if(updateRides.rideStatus.equals("ACCEPTED")){
-                    if(updateRides.driverId.equals(userProfile.uid)){
-                        Toast.makeText(DriverMapsActivity.this, "You have been selected for this ride.. Wait the intent will come soon", Toast.LENGTH_SHORT).show();
-                    }else{
-                        Toast.makeText(DriverMapsActivity.this, "Sorry, the ride is not available", Toast.LENGTH_SHORT).show();
-                        finish();
-                    }
-                }
-//            }
-//        }, 40000);
-    }
 
     /**
      * Prompts the user for permission to use the device location.

@@ -166,7 +166,7 @@ public class OnRideActivity extends FragmentActivity implements OnMapReadyCallba
                         showProgressBarDialog();
                         AddDataToPreviousRide(updated);
                         // started listening for request ride deletion
-                        //ListenForRequestRideDeletion(updated.riderId);
+                        ListenForRequestRideDeletion(updated.riderId);
                     }
                 } else {
                     System.out.print("Current data: null");
@@ -492,7 +492,6 @@ public class OnRideActivity extends FragmentActivity implements OnMapReadyCallba
                     Toast.makeText(OnRideActivity.this, "added this ride info to previous ride", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "onComplete: wrote into previous ride in OnrideActivty");
                     hideProgressBarDialog();
-                    finish();
                 }else{
                     Log.d(TAG, "onComplete: some error occured while addind data to previou ride in  ONRide activity");
                 }
@@ -539,6 +538,7 @@ public class OnRideActivity extends FragmentActivity implements OnMapReadyCallba
                                     Log.d(TAG, "Removed deleted request ride: " + dc.getDocument().getData());
                                     if (dc.getDocument().getId().equals(requestID)){
                                         Log.d(TAG, "onEvent: got confiremed request ride is deleted, finishing on ride activity");
+//                                        Intent data = new Intent();
                                         finish();
                                     }
                                     break;
