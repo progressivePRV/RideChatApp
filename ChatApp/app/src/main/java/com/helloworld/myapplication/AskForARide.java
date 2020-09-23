@@ -325,10 +325,27 @@ public class AskForARide extends AppCompatActivity {
     void getToDriverListActivity(){
         if (acceptedDrivers.size()==0){
             Toast.makeText(this, "Sorry, No Driver is available at this moment", Toast.LENGTH_SHORT).show();
+            db.collection("ChatRoomList")
+                    .document(chatRoomName)
+                    .collection("Requested Rides")
+                    .document(user.uid)
+                    .delete()
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if(task.isSuccessful()){
+                                Log.d(TAG, "onComplete: request ride deleted succefully in rider on ride activtiy");
+                            }else{
+                                Log.d(TAG, "onComplete: error while deleting the request ride in rider on rid activity");
+                            }
+                        }
+                    });
+            finish();
+        }else{
+            Intent i = new Intent(this, Driver_list.class);
+            i.putExtra("drivers",acceptedDrivers);
+            startActivityForResult(i, 150);
         }
-        Intent i = new Intent(this, Driver_list.class);
-        i.putExtra("drivers",acceptedDrivers);
-        startActivityForResult(i, 150);
     }
 
     @Override

@@ -92,6 +92,7 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
     protected void onResume() {
         Log.d(TAG, "onResume: in chatroomActivity");
         super.onResume();
+        addingListenerRequestedRide();
     }
 
     @Override
@@ -292,45 +293,52 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
 
         //Adding Snapshot listener to the Requested Rides User Document for Drivers
         //Hope it works!!
+        addingListenerRequestedRide();
+
+
+    }
+
+    public void addingListenerRequestedRide(){
 
         //Adding snapshot to the requested rides in the chatroom
         db.collection("ChatRoomList")
                 .document(chatRoomName)
                 .collection("Requested Rides")
                 .addSnapshotListener(ChatRoomActivity.this, new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable QuerySnapshot snapshots,
-                                @Nullable FirebaseFirestoreException e) {
-                if (e != null) {
-                    Log.w("TAG", "listen:error", e);
-                    return;
-                }
+                    @Override
+                    public void onEvent(@Nullable QuerySnapshot snapshots,
+                                        @Nullable FirebaseFirestoreException e) {
+                        if (e != null) {
+                            Log.w("TAG", "listen:error", e);
+                            return;
+                        }
 
-                for (DocumentChange dc : snapshots.getDocumentChanges()) {
-                    switch (dc.getType()) {
-                        case ADDED:
-                            Toast.makeText(ChatRoomActivity.this, "It comes to addded", Toast.LENGTH_SHORT).show();
-                            RequestedRides added = dc.getDocument().toObject(RequestedRides.class);
-                            if(added.rideStatus.equals("REQUESTED")){
-                                Intent intent = new Intent(ChatRoomActivity.this, DriverMapsActivity.class);
-                                intent.putExtra("chatRoomName",chatRoomName);
-                                intent.putExtra("requestedRides", added);
-                                intent.putExtra("userProfile",user);
-                                startActivity(intent);
+                        for (DocumentChange dc : snapshots.getDocumentChanges()) {
+                            switch (dc.getType()) {
+                                case ADDED:
+                                    Toast.makeText(ChatRoomActivity.this, "It comes to addded", Toast.LENGTH_SHORT).show();
+                                    RequestedRides added = dc.getDocument().toObject(RequestedRides.class);
+                                    if(added.rideStatus.equals("REQUESTED")){
+                                        Intent intent = new Intent(ChatRoomActivity.this, DriverMapsActivity.class);
+                                        intent.putExtra("chatRoomName",chatRoomName);
+                                        intent.putExtra("requestedRides", added);
+                                        intent.putExtra("userProfile",user);
+                                        startActivity(intent);
+                                    }
+                                    break;
+                                case MODIFIED:
+                                    Toast.makeText(ChatRoomActivity.this, "It comes to modified", Toast.LENGTH_SHORT).show();
+                                    break;
+                                case REMOVED:
+                                    Toast.makeText(ChatRoomActivity.this, "It comes to deleted", Toast.LENGTH_SHORT).show();
+                                    break;
                             }
-                            break;
-                        case MODIFIED:
-                            Toast.makeText(ChatRoomActivity.this, "It comes to modified", Toast.LENGTH_SHORT).show();
-                            break;
-                        case REMOVED:
-                            Toast.makeText(ChatRoomActivity.this, "It comes to deleted", Toast.LENGTH_SHORT).show();
-                            break;
+                        }
                     }
-                }
-            }
-        });
-
+                });
     }
+
+
     //For checking the empty strings
     public boolean checkValidations(EditText editText){
         if(editText.getText().toString().trim().equals("")){
