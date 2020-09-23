@@ -57,4 +57,7 @@
     <string name="cancelRide">Cancel Ride</string>
     <string name="menu_priviousRide">Previous Rides</string>
     <string name="date_text">"Date: "</string>
+    <string name="riderRequest">Ride Request</string>
+    <string name="requestARide">Request a Ride</string>
+    <string name="ride">Ride</string>
 </resources>

@@ -293,7 +293,7 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
 
         //Adding Snapshot listener to the Requested Rides User Document for Drivers
         //Hope it works!!
-        addingListenerRequestedRide();
+        //addingListenerRequestedRide("onCreate");
 
 
     }
@@ -316,9 +316,10 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
                         for (DocumentChange dc : snapshots.getDocumentChanges()) {
                             switch (dc.getType()) {
                                 case ADDED:
-                                    Toast.makeText(ChatRoomActivity.this, "It comes to addded", Toast.LENGTH_SHORT).show();
+                                    //Toast.makeText(ChatRoomActivity.this, "It comes to addded", Toast.LENGTH_SHORT).show();
                                     RequestedRides added = dc.getDocument().toObject(RequestedRides.class);
-                                    if(added.rideStatus.equals("REQUESTED")){
+                                    mAuth = FirebaseAuth.getInstance();
+                                    if(added.rideStatus.equals("REQUESTED") && (added.rejectedRides!=null && !added.rejectedRides.contains(mAuth.getCurrentUser().getUid()))){
                                         Intent intent = new Intent(ChatRoomActivity.this, DriverMapsActivity.class);
                                         intent.putExtra("chatRoomName",chatRoomName);
                                         intent.putExtra("requestedRides", added);
@@ -327,10 +328,10 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
                                     }
                                     break;
                                 case MODIFIED:
-                                    Toast.makeText(ChatRoomActivity.this, "It comes to modified", Toast.LENGTH_SHORT).show();
+                                    //Toast.makeText(ChatRoomActivity.this, "It comes to modified", Toast.LENGTH_SHORT).show();
                                     break;
                                 case REMOVED:
-                                    Toast.makeText(ChatRoomActivity.this, "It comes to deleted", Toast.LENGTH_SHORT).show();
+                                    //Toast.makeText(ChatRoomActivity.this, "It comes to deleted", Toast.LENGTH_SHORT).show();
                                     break;
                             }
                         }

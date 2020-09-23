@@ -19,6 +19,7 @@ public class RequestedRides implements Serializable {
     String fromLocation;
     String rideStatus;
     ArrayList<Double> driverLocation = new ArrayList<>();
+    ArrayList<String> rejectedRides = new ArrayList<>();
 
     public String getRiderId() {
         return riderId;
@@ -100,6 +101,13 @@ public class RequestedRides implements Serializable {
         this.rideStatus = rideStatus;
     }
 
+    public ArrayList<String> getRejectedRides() {
+        return rejectedRides;
+    }
+
+    public void setRejectedRides(ArrayList<String> rejectedRides) {
+        this.rejectedRides = rejectedRides;
+    }
 
     public ArrayList<Double> getDriverLocation() {
         return driverLocation;

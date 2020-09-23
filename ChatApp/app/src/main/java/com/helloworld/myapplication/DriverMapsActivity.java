@@ -101,6 +101,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
     ImageView imageViewpickUpLocation;
     ImageView imageViewDropOffLocation;
     OkHttpClient client;
+    RequestedRides requestedRides;
 
     @Override
     protected void onResume() {
@@ -138,7 +139,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
 
         isYesClicked=false;
 
-        final RequestedRides requestedRides = (RequestedRides) getIntent().getExtras().getSerializable("requestedRides");
+        requestedRides = (RequestedRides) getIntent().getExtras().getSerializable("requestedRides");
         riderName=findViewById(R.id.riderName);
         toLocation=findViewById(R.id.toLocation);
         fromLocation=findViewById(R.id.fromLocation);
@@ -189,7 +190,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                     @Override
                     public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException error) {
 
-                        Toast.makeText(DriverMapsActivity.this, snapshot +" "+ error, Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(DriverMapsActivity.this, snapshot +" "+ error, Toast.LENGTH_SHORT).show();
                         Log.d("demo", snapshot +" "+ error);
                         if (error != null) {
                             progressDialog.dismiss();
@@ -305,18 +306,50 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
             public void run() {
                 if(!isYesClicked){
                     Toast.makeText(DriverMapsActivity.this, "Ride rejected", Toast.LENGTH_SHORT).show();
-                    finish();
+                    //DriverMapsActivity.this.finish();
+                    addRejectedRide();
                 }
             }
-        },30000);
+        },20000);
 
         findViewById(R.id.buttonDriverNo).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(!isYesClicked){
                     Toast.makeText(DriverMapsActivity.this, "Ride rejected", Toast.LENGTH_SHORT).show();
-                    finish();
+                    //finish();
+                    addRejectedRide();
                 }
+            }
+        });
+
+    }
+
+    @Override
+    public void onBackPressed() {
+        //super.onBackPressed();
+        Toast.makeText(DriverMapsActivity.this, "Ride rejected", Toast.LENGTH_SHORT).show();
+        addRejectedRide();
+    }
+
+    public void addRejectedRide(){
+
+        DocumentReference rejectReference =  db.collection("ChatRoomList")
+                .document(chatRoomName)
+                .collection("Requested Rides")
+                .document(requestedRides.riderId);
+
+        rejectReference.update("rejectedRides",
+                FieldValue.arrayUnion(userProfile.uid))
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        finish();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(DriverMapsActivity.this, "Some error occured. Please try again", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -327,7 +360,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == 4025 && resultCode == 5025){
-            Toast.makeText(this, "entering here", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "entering here", Toast.LENGTH_SHORT).show();
             DriverMapsActivity.this.finish();
         }
     }
