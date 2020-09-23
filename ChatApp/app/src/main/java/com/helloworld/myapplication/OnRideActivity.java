@@ -10,6 +10,7 @@ import androidx.fragment.app.FragmentActivity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -159,20 +160,45 @@ public class OnRideActivity extends FragmentActivity implements OnMapReadyCallba
                     if(updated.rideStatus.equals("CANCELLED")){
                         //Then either the rider or the driver has cancelled it. so finishing this intent.
                         Toast.makeText(OnRideActivity.this, "Sorry.. This ride has been cancelled..", Toast.LENGTH_LONG).show();
-                        finish();
+                        DeleteRequestRide(updated);
                     }else if(updated.rideStatus.equals("COMPLETED")){
                         //Please write code for what should be implemented if the ride status is completed.
                         Log.d(TAG, "onEvent: driver detected ride status completed");
                         showProgressBarDialog();
                         AddDataToPreviousRide(updated);
                         // started listening for request ride deletion
-                        ListenForRequestRideDeletion(updated.riderId);
+
                     }
                 } else {
+
+                    //It means the document is deleted
                     System.out.print("Current data: null");
+                    Log.d(TAG, "onEvent: got confiremed request ride is deleted, finishing on ride activity");
+                    Intent data = new Intent();
+                    setResult(5025, data);
+                    finish();
                 }
             }
         });
+    }
+
+    //adding function to delete request ride
+    void DeleteRequestRide(RequestedRides request){
+        db.collection("ChatRoomList")
+                .document(chatRoomName)
+                .collection("Requested Rides")
+                .document(request.riderId)
+                .delete()
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()){
+                            Log.d(TAG, "onComplete: request ride deleted succefully in rider on ride activtiy");
+                        }else{
+                            Log.d(TAG, "onComplete: error while deleting the request ride in rider on rid activity");
+                        }
+                    }
+                });
     }
 
     /**
@@ -367,7 +393,6 @@ public class OnRideActivity extends FragmentActivity implements OnMapReadyCallba
                                     @Override
                                     public void onComplete(@NonNull Task<Void> task) {
                                         Toast.makeText(OnRideActivity.this, "Ride is cancelled. Going back to the chatroom activity", Toast.LENGTH_SHORT).show();
-                                        finish();
                                     }
                                 }).addOnFailureListener(new OnFailureListener() {
                             @Override
@@ -472,7 +497,7 @@ public class OnRideActivity extends FragmentActivity implements OnMapReadyCallba
     }
 
     //adding this ride to previous rides
-    void AddDataToPreviousRide(RequestedRides request){
+    void AddDataToPreviousRide(final RequestedRides request){
         PreviousRide ride = new PreviousRide();
         ride.driverID = request.driverId;
         ride.riderID = request.riderId;
@@ -492,6 +517,7 @@ public class OnRideActivity extends FragmentActivity implements OnMapReadyCallba
                     Toast.makeText(OnRideActivity.this, "added this ride info to previous ride", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "onComplete: wrote into previous ride in OnrideActivty");
                     hideProgressBarDialog();
+                   // ListenForRequestRideDeletion(request.riderId);
                 }else{
                     Log.d(TAG, "onComplete: some error occured while addind data to previou ride in  ONRide activity");
                 }
@@ -514,38 +540,39 @@ public class OnRideActivity extends FragmentActivity implements OnMapReadyCallba
         progressDialog.show();
     }
 
-    void ListenForRequestRideDeletion(final String requestID){
-        db.collection("ChatRoomList")
-                .document(chatRoomName)
-                .collection("Requested Rides")
-                .addSnapshotListener(this,new EventListener<QuerySnapshot>() {
-                    @Override
-                    public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
-                        if (error != null) {
-                            Log.w(TAG, "listen:error while listening for deleetion in on ride activity", error);
-                            return;
-                        }
-
-                        for (DocumentChange dc : value.getDocumentChanges()) {
-                            switch (dc.getType()) {
-                                case ADDED:
-                                    Log.d(TAG, "New request rie " + dc.getDocument().getData());
-                                    break;
-                                case MODIFIED:
-                                    Log.d(TAG, "Modified request ride: " + dc.getDocument().getData());
-                                    break;
-                                case REMOVED:
-                                    Log.d(TAG, "Removed deleted request ride: " + dc.getDocument().getData());
-                                    if (dc.getDocument().getId().equals(requestID)){
-                                        Log.d(TAG, "onEvent: got confiremed request ride is deleted, finishing on ride activity");
+//    void ListenForRequestRideDeletion(final String requestID){
+//        db.collection("ChatRoomList")
+//                .document(chatRoomName)
+//                .collection("Requested Rides")
+//                .addSnapshotListener(this,new EventListener<QuerySnapshot>() {
+//                    @Override
+//                    public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+//                        if (error != null) {
+//                            Log.w(TAG, "listen:error while listening for deleetion in on ride activity", error);
+//                            return;
+//                        }
+//
+//                        for (DocumentChange dc : value.getDocumentChanges()) {
+//                            switch (dc.getType()) {
+//                                case ADDED:
+//                                    Log.d(TAG, "New request rie " + dc.getDocument().getData());
+//                                    break;
+//                                case MODIFIED:
+//                                    Log.d(TAG, "Modified request ride: " + dc.getDocument().getData());
+//                                    break;
+//                                case REMOVED:
+//                                    Log.d(TAG, "Removed deleted request ride: " + dc.getDocument().getData());
+//                                    if (dc.getDocument().getId().equals(requestID)){
+//                                        Log.d(TAG, "onEvent: got confiremed request ride is deleted, finishing on ride activity");
 //                                        Intent data = new Intent();
-                                        finish();
-                                    }
-                                    break;
-                            }
-                        }
-                    }
-                });
-    }
+//                                        setResult(5025, data);
+//                                        finish();
+//                                    }
+//                                    break;
+//                            }
+//                        }
+//                    }
+//                });
+//    }
 
 }

@@ -250,7 +250,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                                     Intent intent= new Intent(DriverMapsActivity.this,OnRideActivity.class);
                                     intent.putExtra("requestedRide",updateRides);
                                     intent.putExtra("chatRoomName",chatRoomName);
-                                    startActivity(intent);
+                                    startActivityForResult(intent, 4025);
                                     finish();
                                 }else{
                                     progressDialog.dismiss();
@@ -322,6 +322,15 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
 
     }
 
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == 4025 && resultCode == 5025){
+            Toast.makeText(this, "entering here", Toast.LENGTH_SHORT).show();
+            DriverMapsActivity.this.finish();
+        }
+    }
 
     /**
      * Prompts the user for permission to use the device location.
