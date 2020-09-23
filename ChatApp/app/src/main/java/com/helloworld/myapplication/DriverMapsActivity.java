@@ -102,6 +102,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
     ImageView imageViewDropOffLocation;
     OkHttpClient client;
     RequestedRides requestedRides;
+    LatLngBounds.Builder latlngBuilder;
 
     @Override
     protected void onResume() {
@@ -148,6 +149,8 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
         toLocation.setText(requestedRides.toLocation);
         fromLocation.setText(requestedRides.fromLocation);
 
+        latlngBuilder =  new LatLngBounds.Builder();
+
         // Prompt the user for permission.
         getLocationPermission();
         // [END_EXCLUDE]
@@ -171,7 +174,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                 Toast.makeText(DriverMapsActivity.this, "Sending confirmation. Please wait", Toast.LENGTH_SHORT).show();
 
                 progressDialog = new ProgressDialog(DriverMapsActivity.this);
-                progressDialog.setMessage("Fetching your ride details");
+                progressDialog.setMessage("Waiting for ride confirmation");
                 progressDialog.setCancelable(false);
                 progressDialog.show();
 
@@ -411,6 +414,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                                         .position( new LatLng(lastKnownLocation.getLatitude(),
                                                 lastKnownLocation.getLongitude()))
                                         .title("Your Location");
+                                latlngBuilder.include(marker.getPosition());
                                 marker.icon(bitmapDescriptorFromVector(R.drawable.car));
                                 mMap.addMarker(marker);
                             }
@@ -491,7 +495,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        LatLngBounds.Builder latlngBuilder =  new LatLngBounds.Builder();
+
 
 //        PolylineOptions polylineOptions =  new PolylineOptions();
 
