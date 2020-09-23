@@ -274,12 +274,16 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                                                     Toast.makeText(DriverMapsActivity.this, "Sorry, the ride is not available", Toast.LENGTH_SHORT).show();
                                                     finish();
                                                 }
+                                            }else if(updateRides.rideStatus.equals("CANCELLED")){
+                                                Toast.makeText(DriverMapsActivity.this, "Sorry! Rider has cancelled this ride", Toast.LENGTH_SHORT).show();
+                                                finish();
                                             }
 
 
                                         } else {
                                             System.out.print("Current data: null");
                                             progressDialog.dismiss();
+                                            finish();
                                         }
                                     }
                                 });
