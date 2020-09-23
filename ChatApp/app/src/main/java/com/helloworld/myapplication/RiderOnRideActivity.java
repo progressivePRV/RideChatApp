@@ -411,7 +411,7 @@ public class RiderOnRideActivity extends FragmentActivity implements OnMapReadyC
                         //Please write code for what should be implemented if the ride status is completed.
                         Log.d(TAG, "onEvent: rider detected ride status completed");
                         //on complete add data to previous ride
-                        showProgressBarDialog();
+                        //showProgressBarDialog();
                         AddDataToPreviousRide(updated);
                         DeleteRequestRide(updated);
                         finish();

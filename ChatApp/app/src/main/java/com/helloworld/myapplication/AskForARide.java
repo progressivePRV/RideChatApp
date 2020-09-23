@@ -227,7 +227,6 @@ public class AskForARide extends AppCompatActivity {
         });
     }
 
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -258,31 +257,23 @@ public class AskForARide extends AppCompatActivity {
                                 progressDialog.setMessage("Fetching driver location...");
                                 progressDialog.setCancelable(false);
                                 progressDialog.show();
-                                final DocumentReference docRefDriver = db.collection("ChatRoomList")
+                                db.collection("ChatRoomList")
                                         .document(getIntent().getExtras().getString("chatRoomName"))
                                         .collection("Requested Rides")
-                                        .document(updateRideDetails.riderId);
-
-                                docRefDriver.addSnapshotListener(AskForARide.this, new EventListener<DocumentSnapshot>() {
+                                        .document(updateRideDetails.riderId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                                     @Override
-                                    public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
-                                        if (error != null) {
-                                            Log.w("TAG", "listen:error", error);
-                                            progressDialog.hide();
-                                            return;
-                                        }
-
-                                        if(value!=null){
-                                            RequestedRides rider = value.toObject(RequestedRides.class);
-                                            if(rider.driverLocation!=null && !rider.driverLocation.isEmpty()){
-                                                Intent intent = new Intent(AskForARide.this,RiderOnRideActivity.class);
-                                                intent.putExtra("chatRoomName",chatRoomName);
-                                                intent.putExtra("requestedRide",rider);
-                                                progressDialog.hide();
-                                                startActivity(intent);
-                                                finish();
-                                            }
-                                        }
+                                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                        Intent intent = new Intent(AskForARide.this,RiderOnRideActivity.class);
+                                        intent.putExtra("chatRoomName",chatRoomName);
+                                        intent.putExtra("requestedRide",updateRideDetails);
+                                        progressDialog.hide();
+                                        startActivity(intent);
+                                        finish();
+                                    }
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Toast.makeText(AskForARide.this, "Sorry Some error happened!", Toast.LENGTH_SHORT).show();
                                     }
                                 });
                             }
@@ -326,6 +317,13 @@ public class AskForARide extends AppCompatActivity {
             }
         }, 30000);
     }
+
+//    @Override
+//    protected void onResume() {
+//        Log.d(TAG, "onResume: in chatroomActivity");
+//        super.onResume();
+//                ();
+//    }
 
     void getToDriverListActivity(){
         if (acceptedDrivers.size()==0){
