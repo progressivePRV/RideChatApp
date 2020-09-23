@@ -405,6 +405,7 @@ public class RiderOnRideActivity extends FragmentActivity implements OnMapReadyC
                     if(updated.rideStatus.equals("CANCELLED")){
                         //Then either the rider or the driver has cancelled it. so finishing this intent.
                         Toast.makeText(RiderOnRideActivity.this, "This ride has been cancelled", Toast.LENGTH_LONG).show();
+                        DeleteRequestRide(updated);
                         finish();
                     }else if(updated.rideStatus.equals("COMPLETED")){
                         //Please write code for what should be implemented if the ride status is completed.
