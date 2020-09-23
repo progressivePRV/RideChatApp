@@ -358,6 +358,7 @@ public class RiderOnRideActivity extends FragmentActivity implements OnMapReadyC
                                     @Override
                                     public void onComplete(@NonNull Task<Void> task) {
                                         Toast.makeText(RiderOnRideActivity.this, "Ride is cancelled. Going back to the chatroom activity", Toast.LENGTH_SHORT).show();
+                                        setResult(250, null);
                                         finish();
                                     }
                                 }).addOnFailureListener(new OnFailureListener() {

@@ -1,15 +1,24 @@
 package com.helloworld.myapplication;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 
@@ -18,7 +27,10 @@ public class Driver_list extends AppCompatActivity implements rvAdapterForDriver
     ArrayList<UserProfile> drivers = new ArrayList<>();
     RecyclerView rv;
     RecyclerView.Adapter rvAdapter;
+    private FirebaseFirestore db;
     RecyclerView.LayoutManager rvLayoutManager;
+    private String chatRoomName;
+    private RequestedRides rides;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +42,7 @@ public class Driver_list extends AppCompatActivity implements rvAdapterForDriver
         setSupportActionBar(t);
         setTitle("List of Drivers");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        db = FirebaseFirestore.getInstance();
 
         drivers = (ArrayList<UserProfile>) getIntent().getSerializableExtra("drivers");
 
@@ -39,6 +52,16 @@ public class Driver_list extends AppCompatActivity implements rvAdapterForDriver
         rv.setLayoutManager(rvLayoutManager);
         rvAdapter =  new rvAdapterForDriverList(this,drivers);
         rv.setAdapter(rvAdapter);
+
+        chatRoomName = getIntent().getExtras().getString("chatRoomName");
+        rides = (RequestedRides) getIntent().getExtras().getSerializable("updateRideDetails");
+
+        findViewById(R.id.buttonCancelRide).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
     }
 
     @Override
@@ -55,4 +78,44 @@ public class Driver_list extends AppCompatActivity implements rvAdapterForDriver
         setResult(250, data);
         finish();
     }
+
+    @Override
+    public void onBackPressed() {
+        AlertDialog.Builder builder1 = new AlertDialog.Builder(Driver_list.this);
+        builder1.setMessage("Are you sure you want to cancel this ride?");
+        builder1.setPositiveButton(
+                "Yes",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        db.collection("ChatRoomList").document(chatRoomName)
+                                .collection("Requested Rides")
+                                .document(rides.riderId)
+                                .update("rideStatus","CANCELLED")
+                                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        Toast.makeText(Driver_list.this, "Ride is cancelled. Going back to the chatroom activity", Toast.LENGTH_SHORT).show();
+                                        finish();
+                                    }
+                                }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(Driver_list.this, "Some error occured. Please try again", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                });
+
+        builder1.setNegativeButton(
+                "No",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alert11 = builder1.create();
+        alert11.show();
+
+    }
+
 }
