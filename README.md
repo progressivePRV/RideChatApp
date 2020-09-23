@@ -1,5 +1,14 @@
-# RideChatApp
+## RideChatApp
 
-this is a mainly ride request app
+Please click on the below link to go to the wiki page to know about the details about this project.
+https://github.com/monesa-git/RideChatApp/wiki
 
-other infromation will be provided shortly
+## **External Links**
+**_Source code_**
+https://github.com/monesa-git/RideChatApp/tree/master/ChatApp
+
+**_Youtube Video_**
+https://youtu.be/bzClHdsjpP0
+
+**_User experience Design Link_**
+https://xd.adobe.com/view/b96d9cdf-95eb-4a2f-b4fb-54a85718c986-ec3e/
