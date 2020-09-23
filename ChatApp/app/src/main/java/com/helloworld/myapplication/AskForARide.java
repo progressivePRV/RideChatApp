@@ -78,7 +78,7 @@ public class AskForARide extends AppCompatActivity {
         Toolbar t = findViewById(R.id.toolbar_for_sidebar);
         t.setTitleTextColor(Color.WHITE);
         setSupportActionBar(t);
-        setTitle("Ask For a Ride");
+        setTitle("Request a ride");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         user = (UserProfile) getIntent().getSerializableExtra("user");
