@@ -171,7 +171,7 @@ public class DriverMapsActivity extends FragmentActivity implements OnMapReadyCa
                 Toast.makeText(DriverMapsActivity.this, "Sending confirmation. Please wait", Toast.LENGTH_SHORT).show();
 
                 progressDialog = new ProgressDialog(DriverMapsActivity.this);
-                progressDialog.setMessage("Fetching your ride details");
+                progressDialog.setMessage("Waiting for ride confirmation");
                 progressDialog.setCancelable(false);
                 progressDialog.show();
 
