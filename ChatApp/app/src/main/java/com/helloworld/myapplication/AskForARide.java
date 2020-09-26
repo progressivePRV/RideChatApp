@@ -385,6 +385,13 @@ public class AskForARide extends AppCompatActivity {
         return true;
     }
 
+    /// this is cure for activity leak from internet
+    @Override
+    protected void onStop() {
+        progressDialog.dismiss();
+        super.onStop();
+    }
+
     //for hiding the progress dialog
     public void hideProgressBarDialog()
     {
