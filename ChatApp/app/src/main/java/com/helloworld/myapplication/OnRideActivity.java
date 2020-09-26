@@ -15,6 +15,7 @@ import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
@@ -35,7 +36,6 @@ import android.widget.TextView;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -59,6 +59,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -70,9 +72,18 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.maps.DirectionsApiRequest;
+import com.google.maps.GeoApiContext;
+import com.google.maps.PendingResult;
+import com.google.maps.model.DirectionsLeg;
+import com.google.maps.model.DirectionsResult;
+import com.google.maps.model.DirectionsRoute;
+import com.google.maps.model.DirectionsStep;
+import com.google.maps.model.EncodedPolyline;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.atomic.DoubleAdder;
 
 public class OnRideActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -112,6 +123,8 @@ public class OnRideActivity extends FragmentActivity implements OnMapReadyCallba
     Double globalLat = 0.0;
     Double globalLng = 0.0;
 
+    Polyline line;
+
     //////////////
 
 
@@ -132,6 +145,7 @@ public class OnRideActivity extends FragmentActivity implements OnMapReadyCallba
                     .findFragmentById(R.id.map);
             mapFragment.getMapAsync(this);
             fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
 
             //////////////////updates for walk test
 
@@ -675,7 +689,89 @@ public class OnRideActivity extends FragmentActivity implements OnMapReadyCallba
                      globalLat = location.getLatitude();
                      globalLng = location.getLongitude();
                     Log.d(TAG, "onLocationResult: this is from locationi callback");
-                    Toast.makeText(OnRideActivity.this, "this is location provided by onLocation result, lat>"+location.getLatitude()+" "+location.getLongitude(), Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(OnRideActivity.this, "this is location provided by onLocation result, lat>"+location.getLatitude()+" "+location.getLongitude(), Toast.LENGTH_SHORT).show();
+
+                    RequestedRides requestedRides = (RequestedRides) getIntent().getExtras().getSerializable("requestedRide");
+
+
+                    List<LatLng> path = new ArrayList();
+
+                    GeoApiContext context = new GeoApiContext.Builder()
+                            .apiKey(getString(R.string.api_key))
+                            .build();
+
+                    DirectionsApiRequest req=new DirectionsApiRequest(context);
+                    req.origin(new com.google.maps.model.LatLng(requestedRides.pickUpLocation.get(0),requestedRides.pickUpLocation.get(1)));
+                    req.destination(new com.google.maps.model.LatLng(globalLat,globalLng));
+
+
+                    req.setCallback(new PendingResult.Callback<DirectionsResult>() {
+                        @Override
+                        public void onResult(DirectionsResult result) {
+                            DirectionsResult res = result;
+                            Log.d("demo",res.routes+"");
+                            if (res.routes != null && res.routes.length > 0) {
+                                DirectionsRoute route = res.routes[0];
+
+                                if (route.legs !=null) {
+                                    for(int i=0; i<route.legs.length; i++) {
+                                        DirectionsLeg leg = route.legs[i];
+                                        if (leg.steps != null) {
+                                            for (int j=0; j<leg.steps.length;j++){
+                                                DirectionsStep step = leg.steps[j];
+                                                if (step.steps != null && step.steps.length >0) {
+                                                    for (int k=0; k<step.steps.length;k++){
+                                                        DirectionsStep step1 = step.steps[k];
+                                                        EncodedPolyline points1 = step1.polyline;
+                                                        if (points1 != null) {
+                                                            //Decode polyline and add points to list of route coordinates
+                                                            List<com.google.maps.model.LatLng> coords1 = points1.decodePath();
+                                                            for (com.google.maps.model.LatLng coord1 : coords1) {
+                                                                path.add(new LatLng(coord1.lat, coord1.lng));
+                                                            }
+                                                        }
+                                                    }
+                                                } else {
+                                                    EncodedPolyline points = step.polyline;
+                                                    if (points != null) {
+                                                        //Decode polyline and add points to list of route coordinates
+                                                        List<com.google.maps.model.LatLng> coords = points.decodePath();
+                                                        for (com.google.maps.model.LatLng coord : coords) {
+                                                            path.add(new LatLng(coord.lat, coord.lng));
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (path.size() > 0) {
+
+                                        if(line!=null){
+                                            line.remove();
+                                        }
+                                        PolylineOptions opts = new PolylineOptions().addAll(path).color(Color.BLUE).width(10);
+
+                                        line = mMap.addPolyline(opts);
+
+                                    }
+
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onFailure(Throwable e) {
+                            Log.d("demo","Directions API failed"+e.getMessage());
+                        }
+                    });
+
+
                 }
             }
         };
