@@ -60,4 +60,10 @@
     <string name="riderRequest">Ride Request</string>
     <string name="requestARide">Request a Ride</string>
     <string name="ride">Ride</string>
+    <string name="title_activity_user_live_location">Map</string>
+    <string name="userLocation">User Location</string>
+    <string name="title_activity_test">Map</string>
+    <string name="test" />
+    <string name="shareMyLocation">"Share My Location "</string>
+    <string name="yourCurrentLocation">Your Current Location</string>
 </resources>

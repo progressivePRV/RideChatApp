@@ -1,6 +1,9 @@
 package com.helloworld.myapplication;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -58,6 +61,7 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<ChatMessageAdapter.
         final ChatMessageDetails chatMessageDetails = mDataset.get(position);
         holder.chatRoomMessage.setText(chatMessageDetails.Message);
 
+
         //For getting the user name
         mDatabase = FirebaseDatabase.getInstance().getReference("users");
 
@@ -101,6 +105,33 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<ChatMessageAdapter.
                     holder.ButtonMessageFavouriteON.setVisibility(ImageButton.INVISIBLE);
                     holder.ButtonMessageFavorites.setVisibility(ImageButton.VISIBLE);
                 }
+
+                if(chatMessageDetails.userCurrentLocation!=null && chatMessageDetails.userCurrentLocation.getLatitude()!=null){
+                    holder.chatRoomMessage.setTypeface(null,Typeface.BOLD_ITALIC);
+                    holder.chatRoomMessage.setTextColor(Color.BLUE);
+                    holder.chatRoomMessage.setPaintFlags(Paint.UNDERLINE_TEXT_FLAG);
+
+                    holder.chatRoomMessage.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            interact.displayLocation(chatMessageDetails);
+                        }
+                    });
+
+                }
+                else{
+                    holder.chatRoomMessage.setTypeface(Typeface.DEFAULT);
+                    holder.chatRoomMessage.setTextColor(Color.BLACK);
+                    holder.chatRoomMessage.setPaintFlags(0);
+
+                    holder.chatRoomMessage.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+
+                        }
+                    });
+                }
+
 
                 holder.ButtonMessageFavorites.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -166,6 +197,7 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<ChatMessageAdapter.
     public interface InteractWithRecyclerView{
         public void getDetails(ChatMessageDetails chatMessageDetails);
         public void getItemPosition(int position, ChatMessageDetails chatMessageDetails);
+        public void displayLocation(ChatMessageDetails chatMessageDetails);
     }
 }
 

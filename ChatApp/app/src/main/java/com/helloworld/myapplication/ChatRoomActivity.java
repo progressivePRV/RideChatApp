@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -11,7 +13,9 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,6 +25,10 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -40,6 +48,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -67,6 +76,11 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
     UserProfile user;
     private EditText enterMessageText;
     private ProgressDialog progressDialog;
+    private Location lastKnownLocation;
+    private static final String KEY_LOCATION = "location";
+    private FusedLocationProviderClient fusedLocationProviderClient;
+    private boolean locationPermissionGranted;
+    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
 
     //For deleting the users from the current user list of the chatroom
     @Override
@@ -98,6 +112,11 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            lastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
+        }
+
         setContentView(R.layout.activity_chat_room);
 
         Log.d(TAG, "onCreate: chatroomActivity is called");
@@ -120,6 +139,9 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
 
         mainAdapter = new ChatMessageAdapter(chatMessageDetailsArrayList, ChatRoomActivity.this);
         mainRecyclerView.setAdapter(mainAdapter);
+
+        //get permissions for fetching location
+        getLocationPermission();
 
         //Adding snapshot listener to the firestore for the chatmessages
         db.collection("ChatRoomList").document(chatRoomName).collection("Messages").addSnapshotListener(new EventListener<QuerySnapshot>() {
@@ -290,11 +312,77 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
             }
         });
 
+        findViewById(R.id.imageButtonLiveLocation).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ChatRoomActivity.this,ConfirmLocationActivity.class);
+                startActivityForResult(intent,101);
+            }
+        });
+
 
         //Adding Snapshot listener to the Requested Rides User Document for Drivers
         //Hope it works!!
         //addingListenerRequestedRide("onCreate");
 
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode==101 && resultCode==RESULT_OK && data!=null && data.getExtras()!=null){
+            mAuth = FirebaseAuth.getInstance();
+            if (mAuth.getCurrentUser() != null) {
+                showProgressBarDialog();
+                UserCurrentLocation userCurrentLocation = (UserCurrentLocation) data.getExtras().get("userCurrentLocation");
+
+                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                LocalDateTime now = LocalDateTime.now();
+
+                //Loading everything into the ChatMessageDetails
+                final ChatMessageDetails chatMessageDetails = new ChatMessageDetails();
+                chatMessageDetails.firstname = user.firstName;
+                chatMessageDetails.Uid = mAuth.getUid();
+                chatMessageDetails.Message = "Click here for my location";
+                chatMessageDetails.date = dtf.format(now);
+                chatMessageDetails.likedUsers = new HashMap<String,Boolean>();
+                chatMessageDetails.imageUrl = user.profileImage;
+
+                UserCurrentLocation currentLocation = new UserCurrentLocation();
+                currentLocation.latitude=userCurrentLocation.latitude;
+                currentLocation.longitude=userCurrentLocation.longitude;
+
+                chatMessageDetails.userCurrentLocation = currentLocation;
+
+                //Document ID is now the user ID plus the message date. so that this can be used when updating the liked user field.
+                String documentID = chatMessageDetails.Uid + "" + chatMessageDetails.date;
+                //Storing all the info along with the message in the firestore
+                db.collection("ChatRoomList").document(chatRoomName).collection("Messages")
+                        .document(documentID)
+                        .set(chatMessageDetails)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+//                                                Toast.makeText(ChatRoomActivity.this, "Message sent!", Toast.LENGTH_SHORT).show();
+                                Log.d("demo", chatMessageDetails.toString());
+                                //enterMessageText.setText("");
+//                                                mainAdapter.notifyDataSetChanged();
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(ChatRoomActivity.this, "Some error occured. Please try again", Toast.LENGTH_SHORT).show();
+                    }
+                });
+                hideProgressBarDialog();
+            }
+            else {
+                Toast.makeText(ChatRoomActivity.this, "User Not Logged In", Toast.LENGTH_SHORT).show();
+                Log.d("demo", "User not logged in");
+            }
+        }
 
     }
 
@@ -424,6 +512,13 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
     }
 
     @Override
+    public void displayLocation(ChatMessageDetails chatMessageDetails) {
+        Intent intent = new Intent(ChatRoomActivity.this,UserLiveLocationActivity.class);
+        intent.putExtra("chatMessageDetails",chatMessageDetails);
+        startActivity(intent);
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.chatroom_menu,menu);
         return true;
@@ -451,4 +546,28 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatMessageAd
         onBackPressed();
         return true;
     }
+
+    /**
+     * Prompts the user for permission to use the device location.
+     */
+    // [START maps_current_place_location_permission]
+    private void getLocationPermission() {
+        /*
+         * Request location permission, so that we can get the location of the
+         * device. The result of the permission request is handled by a callback,
+         * onRequestPermissionsResult.
+         */
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            locationPermissionGranted = true;
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+    }
+
+
+
 }
