@@ -402,7 +402,9 @@ public class AskForARide extends AppCompatActivity {
     /// this is cure for activity leak from internet
     @Override
     protected void onStop() {
-        progressDialog.dismiss();
+        if(progressDialog!=null){
+            progressDialog.dismiss();
+        }
         super.onStop();
     }
 
