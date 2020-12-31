@@ -1,11 +1,9 @@
 ## RideChatApp
 
 Please click on the below link to go to the wiki page to know about the details about this project.
-https://github.com/monesa-git/RideChatApp/wiki
+https://github.com/progressivePRV/RideChatApp/wiki
 
 ## **External Links**
-**_Source code_**
-https://github.com/monesa-git/RideChatApp/tree/master/ChatApp
 
 **_Youtube Video_**
 https://youtu.be/LOwqqYGd73Q
